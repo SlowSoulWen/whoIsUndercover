@@ -1,12 +1,22 @@
 const path = require('path')
 
+function resolve (src) {
+  return path.resolve(__dirname, '..', src)
+}
+
 module.exports = {
   entry: {
     app: './src/main.js'
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, 'dist')
+    path: resolve('dist')
+  },
+  resolve: {
+    alias: {
+      '$config': resolve('config'),
+      '$src': resolve('src')
+    }
   },
   module: {
     rules: [
@@ -26,7 +36,7 @@ module.exports = {
       // },
       {
         test: /\.js$/,
-        loader: 'babel-loader?cacheDirectory=true',// 加上缓存机制
+        loader: 'babel-loader?cacheDirectory=true', // 加上缓存机制
         include: [path.join(__dirname, '..', 'src')],
         exclude: /node_modules/
       },
