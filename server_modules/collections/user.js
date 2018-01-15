@@ -42,4 +42,64 @@ db.createCollection('user', {
 })
 
 const user = db.collection('user')
+const option = {
+  unique: true,
+  background: true
+}
+user.$createIndexes = async () => {
+  await user.createIndexes([
+    {
+      key: {id: 1},
+      option
+    },
+    {
+      key: {account: 1},
+      option
+    },
+    {
+      key: {nickname: 1},
+      option
+    }
+  ])
+}
+user.$addUser = async (user) => {
+  const ErrMessage = {
+    id_1: '用户Id有重复',
+    account_1: '该账号已存在',
+    nickname_1: '该昵称已存在'
+  }
+  try {
+    await user.insertOne(user)
+  } catch (err) {
+    console.log('新增用户出错: ', err)
+    let res = {error: 1, errMesage: ''}
+    if (err.message) {
+      for (let [key, value] of Object.entries(ErrMessage)) {
+        if (key.test(err.message)) {
+          res.errMesage = value
+          return res
+        }
+      }
+    }
+    res.errMesage = err
+    return res
+  }
+  return {
+    error: 0
+  }
+}
+
+user.$findOneUser = async (user) => {
+  let res = ''
+  try {
+    res = await user.findOne(user)
+  } catch (err) {
+    console.log('user.$signin Error:', err)
+    res = {
+      error: 1,
+      errMessage: err
+    }
+  }
+  return res
+}
 module.exports = user
