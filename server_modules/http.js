@@ -1,10 +1,12 @@
 const User = require('./collections/user')
 const Util = require('./util')
-const crypto = require('crypto')
+const bodyParser = require('body-parser')
 
 module.exports = (app) => {
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
   //  注册账号接口
-  app.post('/user/register', (req, res) => {
+  app.post('/user/register', async (req, res) => {
     const emptyMessage = {
       account: '账号不能为空',
       password: '密码不能为空',
@@ -18,9 +20,10 @@ module.exports = (app) => {
         data: hasEmptyMes
       })
     }
-    let md5 = crypto.createHash('md5')
-    user.password = md5.update(user.password).digest('base64')
-    let result = User.$addUser(user)
+    user.password = Util.encryption(user.password)
+    user.id = (new Date()).getTime() + '' + Math.floor(Math.random() * 100000)
+    let userCollection = await User()
+    let result = await userCollection.$addUser(user)
     if (result.error) {
       res.json({
         errno: 1,
@@ -34,21 +37,22 @@ module.exports = (app) => {
   })
 
   // 登录接口
-  app.post('user/signin', (req, res) => {
+  app.post('/user/signin', async (req, res, next) => {
     const emptyMessage = {
       account: '账号不能为空',
       password: '密码不能为空'
     }
     let user = req.body
     let hasEmptyMes = Util.judgeEmpty(user, emptyMessage)
-    if (!hasEmptyMes) {
+    if (hasEmptyMes) {
       res.json({
         errno: 1,
         data: hasEmptyMes
       })
     }
-    let result = User.$findOneUser({account: user.account})
-    if (result.error) {
+    let userCollection = await User()
+    let result = await userCollection.$findOneUser({account: user.account})
+    if (result && result.error) {
       res.json({
         errno: 1,
         data: result.error
@@ -59,8 +63,7 @@ module.exports = (app) => {
         data: '该账号不存在'
       })
     }
-    let md5 = crypto.createHash('md5')
-    if (md5.update(req.password).digest('base64') === result.password) {
+    if (Util.encryption(user.password) === result.password) {
       res.json({
         errno: 0
       })

@@ -24,7 +24,7 @@ module.exports = {
         test: /\.(js|vue)$/,
         loader: 'eslint-loader',
         enforce: 'pre',
-        include: [path.join(__dirname, '..', 'src')],
+        include: [resolve('src')],
         options: {
           formatter: require('eslint-friendly-formatter')
         }
@@ -37,7 +37,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader?cacheDirectory=true', // 加上缓存机制
-        include: [path.join(__dirname, '..', 'src')],
+        include: [resolve('src'), resolve('server_modules')],
         exclude: /node_modules/
       },
       {
