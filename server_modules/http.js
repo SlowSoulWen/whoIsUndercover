@@ -1,4 +1,5 @@
 const User = require('./collections/user')
+const Room = require('./collections/room')
 const Util = require('./util')
 const bodyParser = require('body-parser')
 
@@ -21,7 +22,7 @@ module.exports = (app) => {
       })
     }
     user.password = Util.encryption(user.password)
-    user.id = (new Date()).getTime() + '' + Math.floor(Math.random() * 100000)
+    user.id = Util.getRandomNumber(20)
     let userCollection = await User()
     let result = await userCollection.$addUser(user)
     if (result.error) {
@@ -64,6 +65,7 @@ module.exports = (app) => {
       })
     }
     if (Util.encryption(user.password) === result.password) {
+      req.session.userId = result.id
       res.json({
         errno: 0
       })
@@ -73,5 +75,37 @@ module.exports = (app) => {
         data: '密码错误'
       })
     }
+  })
+
+  // 创建房间
+  app.post('/createRoom', Util.checkLogin, async (req, res) => {
+    const emptyMessage = {
+      roomName: '房间名不能为空',
+      playerMaxNum: '游戏人数不能为空'
+    }
+    let room = req.body
+    let hasEmptyMes = Util.judgeEmpty(room, emptyMessage)
+    if (hasEmptyMes) {
+      res.json({
+        errno: 1,
+        data: hasEmptyMes
+      })
+    }
+    room.ownerId = req.session.userId
+    room.id = Util.getRandomNumber(20)
+    room.status = 1
+    room.player = [].push(room.ownerId)
+    let roomCollection = await Room()
+    let result = await roomCollection.$addUser(room)
+    if (result && result.error) {
+      res.json({
+        errno: 1,
+        data: result.error
+      })
+    }
+    res.json({
+      errno: 0,
+      data: room
+    })
   })
 }
