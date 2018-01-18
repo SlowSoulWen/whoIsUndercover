@@ -28,8 +28,8 @@ app.use(session({
   // })
 }))
 
-httpRoute(app)
-websocket(io)
+const ws = websocket(io)
+httpRoute(app, ws)
 
 server.listen(config.port, () => {
   console.log(`app listening on port ${config.port}!`)

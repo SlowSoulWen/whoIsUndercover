@@ -21,10 +21,10 @@ module.exports = async () => {
             maxLength: 15,
             description: '房间名'
           },
-          roomChat: {
-            bsonType: 'array',
-            description: '房间聊天记录'
-          },
+          // roomChat: {
+          //   bsonType: 'array',
+          //   description: '房间聊天记录'
+          // },
           player: {
             bsonType: 'array',
             description: '玩家列表'
