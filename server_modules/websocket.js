@@ -8,7 +8,7 @@ function websocket (io) {
     })
   })
 
-  const option = {
+  const ws = {
     // 新建房间
     createRoom: (id) => {
       try {
@@ -43,7 +43,7 @@ function websocket (io) {
     }
   }
 
-  return option
+  return ws
 }
 
 module.exports = websocket

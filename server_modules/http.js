@@ -1,10 +1,11 @@
 const User = require('./collections/user')
 const Room = require('./collections/room')
+const Game = require('./collection/game')
 const Util = require('./util')
 const middlewares = require('./middlewares')
 const bodyParser = require('body-parser')
 
-module.exports = (app) => {
+module.exports = (app, ws) => {
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
   //  注册账号接口
@@ -89,10 +90,17 @@ module.exports = (app) => {
     let roomCollection = await Room()
     let result = await roomCollection.$addUser(room)
     middlewares.checkDbData(req, res, result)
-    res.json({
-      errno: 0,
-      data: room
-    })
+    if (ws.createRoom(room.id)) {
+      res.json({
+        errno: 0,
+        data: room
+      })
+    } else {
+      res.json({
+        errno: 1,
+        data: '房间创建失败'
+      })
+    }
   })
 
   // 获取房间数据
@@ -110,6 +118,43 @@ module.exports = (app) => {
     res.json({
       errno: 0,
       data: result
+    })
+  })
+
+  // 开始游戏
+  app.post('/startGame', middlewares.checkLogin, async (req, res, next) => {
+    const emptyMessage = {
+      roomId: '房间id不能为空',
+      keywrod: '游戏关键字不能为空',
+      id: '游戏id不能为空'
+    }
+    const game = req.body
+    let gameCollection = await Game()
+    let roomCollection = await Room()
+    // 获取相应房间信息
+    let room = await roomCollection.$findOneRoom({ id: game.roomId })
+    middlewares.checkDbData(req, res, room)
+    if (room.player.length < room.playerMaxNum) {
+      res.json({
+        errno: 1,
+        data: '玩家数量不足，无法开始'
+      })
+    }
+    game.player = room.player
+    game.id = Util.getRandomNumber(20)
+    game.keywrod = ['诸葛亮', '庞统']
+    let hasEmptyMes = Util.judgeEmpty(game, emptyMessage)
+    if (hasEmptyMes) {
+      res.json({
+        errno: 1,
+        data: hasEmptyMes
+      })
+    }
+    let result = gameCollection.$newGame(game)
+    middlewares.checkDbData(req, res, result)
+    res.json({
+      errno: 0,
+      data: game
     })
   })
 }
