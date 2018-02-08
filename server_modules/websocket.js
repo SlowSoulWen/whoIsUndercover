@@ -15,17 +15,24 @@ function websocket (io) {
         let namespace = `/room-${id}`
         const room = io.of(namespace)
         room.on('connection', (socket) => {
-          // 玩家发言
+          // 玩家在房间发言
           socket.on('message', (data) => {
             room.emit('message', data)
           })
-          // 有玩家加入
+          // 有玩家加入房间
           socket.on('join', (data) => {
             room.emit('join', data)
           })
-          // 有玩家离开
-          socket.on('leave', (data) => {
-            room.emit('join', data)
+          // 有玩家离开房间
+          socket.on('disconnect', (data) => {
+            room.clients((error, clients) => {
+              if (error) console.log('clients Error:', error)
+              if (!clients.length) {
+                // TODO：如果房间没人了，更改房间状态
+              }
+            })
+            // 广播有玩家离开房间
+            room.emit('leave', data)
           })
         })
       } catch (err) {

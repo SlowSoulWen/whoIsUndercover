@@ -1,6 +1,7 @@
 const User = require('./collections/user')
 const Room = require('./collections/room')
 const Util = require('./util')
+const middlewares = require('./middlewares')
 const bodyParser = require('body-parser')
 
 module.exports = (app) => {
@@ -25,16 +26,10 @@ module.exports = (app) => {
     user.id = Util.getRandomNumber(20)
     let userCollection = await User()
     let result = await userCollection.$addUser(user)
-    if (result.error) {
-      res.json({
-        errno: 1,
-        data: result.errMesage
-      })
-    } else {
-      res.json({
-        errno: 0
-      })
-    }
+    middlewares.checkDbData(req, res, result)
+    res.json({
+      errno: 0
+    })
   })
 
   // 登录接口
@@ -53,12 +48,8 @@ module.exports = (app) => {
     }
     let userCollection = await User()
     let result = await userCollection.$findOneUser({account: user.account})
-    if (result && result.error) {
-      res.json({
-        errno: 1,
-        data: result.error
-      })
-    } else if (!result) {
+    middlewares.checkDbData(req, res, result)
+    if (!result) {
       res.json({
         errno: 1,
         data: '该账号不存在'
@@ -78,7 +69,7 @@ module.exports = (app) => {
   })
 
   // 创建房间
-  app.post('/createRoom', Util.checkLogin, async (req, res) => {
+  app.post('/createRoom', middlewares.checkLogin, async (req, res) => {
     const emptyMessage = {
       roomName: '房间名不能为空',
       playerMaxNum: '游戏人数不能为空'
@@ -97,15 +88,28 @@ module.exports = (app) => {
     room.player = [].push(room.ownerId)
     let roomCollection = await Room()
     let result = await roomCollection.$addUser(room)
-    if (result && result.error) {
-      res.json({
-        errno: 1,
-        data: result.error
-      })
-    }
+    middlewares.checkDbData(req, res, result)
     res.json({
       errno: 0,
       data: room
+    })
+  })
+
+  // 获取房间数据
+  app.get('/getRoomById', async (req, res) => {
+    const roomId = req.body.id
+    if (!roomId) {
+      res.json({
+        errno: 1,
+        data: '房间id不能为空'
+      })
+    }
+    let roomCollection = await Room()
+    let result = await roomCollection.$findOneRoom({ id: roomId })
+    middlewares.checkDbData(req, res, result)
+    res.json({
+      errno: 0,
+      data: result
     })
   })
 }

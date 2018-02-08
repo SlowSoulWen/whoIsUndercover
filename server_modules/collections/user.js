@@ -93,7 +93,7 @@ module.exports = async () => {
     try {
       res = await this.findOne(query)
     } catch (err) {
-      console.log('查询用户出错：', err.message)
+      console.log('findOneUser Error:', err.message)
       res = {
         error: 1,
         errMessage: err.message

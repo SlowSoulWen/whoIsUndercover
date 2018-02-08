@@ -30,17 +30,5 @@ module.exports = {
     if (len <= 13) return ((new Date()).getTime() + '').slice(0, len)
     if (len <= 29) return '' + (new Date()).getTime() + Math.floor(Math.random() * Math.pow(10, len - 13))
     else return '' + (new Date()).getTime() + Math.floor(Math.random() * Math.pow(10, 16)) + this.getRandomNumber(len - 29)
-  },
-  /**
-   * 检查登录状态中间件
-  **/
-  checkLogin: (req, res, next) => {
-    if (!req.session.userId) {
-      res.status(401).json({
-        errno: 1,
-        data: '未登录'
-      })
-    }
-    next()
   }
 }

@@ -71,7 +71,7 @@ module.exports = async () => {
     try {
       await this.insertOne(room)
     } catch (err) {
-      console.log('新增房间出错：', err)
+      console.log('addRoom Error：', err)
       let res = {error: 1, errMesage: ''}
       if (err.message) {
         for (let [key, value] of Object.entries(ErrMessage)) {
@@ -87,4 +87,18 @@ module.exports = async () => {
       error: 0
     }
   }
+  room.$findOneRoom = async (query) => {
+    let res = null
+    try {
+      res = await this.findOne(query)
+    } catch (err) {
+      console.log('findOneRoom Error:', err.message)
+      res = {
+        error: 1,
+        errMessage: err.message
+      }
+    }
+    return res
+  }
+  return room
 }
