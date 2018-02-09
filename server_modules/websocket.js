@@ -40,9 +40,13 @@ function websocket (io) {
         return false
       }
       return true
+    },
+    // 广播开始游戏
+    startGame: (roomId, gameId) => {
+      const room = io.of(`/room-${roomId}`)
+      room.emit('startGame', {gameId})
     }
   }
-
   return ws
 }
 

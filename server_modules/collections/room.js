@@ -100,5 +100,18 @@ module.exports = async () => {
     }
     return res
   }
+  room.$updateOneRoom = async (query, content) => {
+    let res = null
+    try {
+      res = await this.updatedOne(query, {$set: content})
+    } catch (err) {
+      console.eror('updateOneRoom Error:', err.message)
+      res = {
+        error: 1,
+        errMesage: err.message
+      }
+    }
+    return res
+  }
   return room
 }

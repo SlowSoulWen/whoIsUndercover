@@ -103,6 +103,34 @@ module.exports = (app, ws) => {
     }
   })
 
+  // 加入房间
+  app.post('/joinRoom', middlewares.checkLogin, async (req, res, next) => {
+    const emptyMessage = {
+      roomId: '房间id不能为空',
+      id: '用户id不能为空'
+    }
+    let user = req.body
+    user.id = req.session.userId
+    let hasEmptyMes = Util.judgeEmpty(user, emptyMessage)
+    if (hasEmptyMes) {
+      res.json({
+        errno: 1,
+        data: hasEmptyMes
+      })
+    }
+    let roomCollection = await Room()
+    let query = {id: user.roomId}
+    let room = await roomCollection.$findOneRoom(query)
+    middlewares.checkDbData(req, res, room)
+    room.player.push(user.id)
+    let result = await roomCollection.$updateOneRoom(query, {player: room.player})
+    middlewares.checkDbData(req, res, result)
+    res.json({
+      errno: 0,
+      data: room
+    })
+  })
+
   // 获取房间数据
   app.get('/getRoomById', async (req, res) => {
     const roomId = req.body.id
@@ -152,6 +180,7 @@ module.exports = (app, ws) => {
     }
     let result = gameCollection.$newGame(game)
     middlewares.checkDbData(req, res, result)
+    ws.startGame(room.id, game.id)
     res.json({
       errno: 0,
       data: game
