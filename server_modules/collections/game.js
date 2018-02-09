@@ -71,4 +71,30 @@ module.export = async function () {
       error: 0
     }
   }
+  game.$findGame = async (query) => {
+    let res = null
+    try {
+      res = await this.findOne(query)
+    } catch (err) {
+      console.error('findGame Error', err)
+      res = {
+        error: 1,
+        errMesage: err.message
+      }
+    }
+    return res
+  }
+  game.$updateGame = async (query, content) => {
+    let res = null
+    try {
+      res = await this.updateOne(query, {$set: content})
+    } catch (err) {
+      console.error('updateGame Error', err)
+      res = {
+        error: 1,
+        errMesage: err
+      }
+    }
+    return res
+  }
 }

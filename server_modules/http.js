@@ -132,8 +132,8 @@ module.exports = (app, ws) => {
   })
 
   // 获取房间数据
-  app.get('/getRoomById', async (req, res) => {
-    const roomId = req.body.id
+  app.get('/room/:id', middlewares.checkLogin, async (req, res) => {
+    const roomId = req.params.id
     if (!roomId) {
       res.json({
         errno: 1,
@@ -168,7 +168,13 @@ module.exports = (app, ws) => {
         data: '玩家数量不足，无法开始'
       })
     }
-    game.player = room.player
+    game.player = room.player.map((item) => {
+      return {
+        id: item.id,
+        vote: 0, // 投票数
+        isVoted: false // 是否已投票
+      }
+    })
     game.id = Util.getRandomNumber(20)
     game.keywrod = ['诸葛亮', '庞统']
     let hasEmptyMes = Util.judgeEmpty(game, emptyMessage)
@@ -185,5 +191,73 @@ module.exports = (app, ws) => {
       errno: 0,
       data: game
     })
+  })
+
+  // 获取游戏内容
+  app.get('/game/:id', middlewares.checkLogin, async (req, res) => {
+    let gameId = req.params.id
+    let gameCollection = await Game()
+    let result = await gameCollection.$findGame({id: gameId})
+    middlewares.checkDbData(req, res, result)
+    res.json({
+      errno: 0,
+      data: result
+    })
+  })
+
+  // 游戏投票
+  app.post('/vote/:gameId', middlewares.checkLogin, async (req, res, next) => {
+    const emptyMessage = {
+      gameId: '游戏id不能为空',
+      userId: '用户id不能为空',
+      voteId: '投票id不能为空'
+    }
+    let vote = req.body
+    vote.gameId = req.params.gameId
+    vote.userId = req.session.userId
+    let hasEmptyMes = Util.judgeEmpty(vote, emptyMessage)
+    if (hasEmptyMes) {
+      res.json({
+        errno: 1,
+        data: hasEmptyMes
+      })
+    }
+    let gameCollection = await Game()
+    let game = gameCollection.$findGame({id: vote.gameId})
+    middlewares.checkDbData(req, res, game)
+    // 获得投票玩家数据，判断是否已投过票
+    let player = game.player.find((player) => {
+      return player.id === vote.userId
+    })
+    if (player.isVote) {
+      res.json({
+        errno: 1,
+        data: '已经投过票了'
+      })
+      next()
+    }
+    let votePlayer = game.player.find((player) => {
+      return player.id === vote.voteId
+    })
+    // 给投票玩家的isVoted（是否投票）字段置true，被投票玩家的vote字段（票数）加一
+    player.isVoted = true
+    votePlayer.vote++
+    let updateRes = await gameCollection.$updateGame({id: vote.gameId}, {player: game.player})
+    middlewares.checkDbData(req, res, updateRes)
+    // 如果所有玩家都已投票，则得出投票结果
+    let isAllVoted = game.player.every((item) => {
+      return item.isVoted
+    })
+    if (isAllVoted) {
+      let outer = null
+      game.player.forEach(player => {
+        if (!outer) outer = player
+        else {
+          outer = outer.vote > player.vote ? outer : player
+        }
+      })
+      // 广播淘汰玩家
+      ws.broadcastVoteResult(vote.gameId, outer)
+    }
   })
 }
