@@ -88,19 +88,12 @@ module.exports = (app, ws) => {
     room.status = 1
     room.player = [].push(room.ownerId)
     let roomCollection = await Room()
-    let result = await roomCollection.$addUser(room)
+    let result = await roomCollection.$addRoom(room)
     middlewares.checkDbData(req, res, result)
-    if (ws.createRoom(room.id)) {
-      res.json({
-        errno: 0,
-        data: room
-      })
-    } else {
-      res.json({
-        errno: 1,
-        data: '房间创建失败'
-      })
-    }
+    res.json({
+      errno: 0,
+      data: room
+    })
   })
 
   // 加入房间
@@ -167,13 +160,12 @@ module.exports = (app, ws) => {
         errno: 1,
         data: '玩家数量不足，无法开始'
       })
+      next()
     }
     game.player = room.player.map((item) => {
-      return {
-        id: item.id,
-        vote: 0, // 投票数
-        isVoted: false // 是否已投票
-      }
+      item.vote = 0 // 投票数
+      item.isVoted = false // 是否已投票
+      return item
     })
     game.id = Util.getRandomNumber(20)
     game.keywrod = ['诸葛亮', '庞统']
