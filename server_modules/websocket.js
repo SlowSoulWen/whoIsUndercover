@@ -46,7 +46,7 @@ function websocket (io) {
   GAMES.on('connection', (socket) => {
     // 玩家发言
     socket.on('message', (data) => {
-      // TODO
+      // TODO 将玩家发言内容存储到数据库
     })
     // 玩家离开
     socket.on('disconnect', (data) => {

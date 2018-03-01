@@ -1,10 +1,11 @@
 const path = require('path')
+const vuxLoader = require('vux-loader')
 
 function resolve (src) {
   return path.resolve(__dirname, '..', src)
 }
 
-module.exports = {
+const webpackConfig = {
   entry: {
     app: './src/main.js'
   },
@@ -13,9 +14,12 @@ module.exports = {
     path: resolve('dist')
   },
   resolve: {
+    extensions: ['.js', '.vue', '.json'],
+    modules: ['src', 'node_modules'],
     alias: {
       '$config': resolve('config'),
-      '$src': resolve('src')
+      '$src': resolve('src'),
+      '$components': resolve('src/components')
     }
   },
   module: {
@@ -29,11 +33,10 @@ module.exports = {
           formatter: require('eslint-friendly-formatter')
         }
       },
-      // {
-      //   test: /\.vue$/,
-      //   loader: 'vue-loader',
-      //   options: vueLoaderConfig
-      // },
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader'
+      },
       {
         test: /\.js$/,
         loader: 'babel-loader?cacheDirectory=true', // 加上缓存机制
@@ -59,3 +62,7 @@ module.exports = {
     ]
   }
 }
+
+module.exports = vuxLoader.merge(webpackConfig, {
+  plugins: ['vux-ui']
+})

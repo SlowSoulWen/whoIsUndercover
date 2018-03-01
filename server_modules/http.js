@@ -1,6 +1,6 @@
 const User = require('./collections/user')
 const Room = require('./collections/room')
-const Game = require('./collection/game')
+const Game = require('./collections/game')
 const Util = require('./util')
 const middlewares = require('./middlewares')
 const bodyParser = require('body-parser')
