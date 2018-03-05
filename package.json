@@ -10,6 +10,7 @@
   "author": "https://github.com/SlowSoulWen",
   "license": "ISC",
   "dependencies": {
+    "animejs": "^2.2.0",
     "express": "^4.16.2",
     "fastclick": "^1.0.6",
     "less": "^3.0.1",
@@ -42,6 +43,7 @@
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
+    "eventsource-polyfill": "^0.9.6",
     "express-session": "^1.15.6",
     "file-loader": "^1.1.10",
     "friendly-errors-webpack-plugin": "^1.6.1",
@@ -55,6 +57,7 @@
     "vux-loader": "^1.2.1",
     "webpack": "^3.10.0",
     "webpack-dev-middleware": "^2.0.4",
+    "webpack-hot-middleware": "^2.21.1",
     "webpack-merge": "^4.1.1"
   }
 }

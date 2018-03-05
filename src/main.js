@@ -16,9 +16,8 @@ FastClick.attach(document.body)
 // 关闭Vue生产模式下给出的提示
 Vue.config.productionTip = false
 
-Vue.$vux.loading.show()
 new Vue({
   router,
   store,
   render: h => h(App)
-}).$mount('#app')
+}).$mount('#app_box')

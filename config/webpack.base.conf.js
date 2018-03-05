@@ -10,16 +10,18 @@ const webpackConfig = {
     app: './src/main.js'
   },
   output: {
-    filename: '[name].js',
-    path: resolve('dist')
+    filename: '[name].[hash:6].js',
+    path: path.resolve(__dirname, '/'),
+    publicPath: '/'
   },
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     modules: ['src', 'node_modules'],
     alias: {
-      '$config': resolve('config'),
-      '$src': resolve('src'),
-      '$components': resolve('src/components')
+      '@config': resolve('config'),
+      '@src': resolve('src'),
+      '@components': resolve('src/components'),
+      '@common': resolve('src/components/common')
     }
   },
   module: {
