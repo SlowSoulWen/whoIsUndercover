@@ -24,7 +24,7 @@
     },
     methods: {
       handleClick (e) {
-        this.emit('click', e)
+        this.$emit('onClick', e)
       }
     }
   }
@@ -32,7 +32,7 @@
 
 <style lang="less" scoped>
   .c-button {
-    font-size: 1.8em;
+    font-size: 1em;
     color: #ffffff;
     background: linear-gradient(to top, #FD6B12, #FE9A5B 80%, #FD6B12);
   }
@@ -45,7 +45,7 @@
     font-weight: bold;
   }
   .sm {
-    padding: 1rem 1.8rem;
+    padding: 1rem 2rem;
   }
   .border-radius {
     border-radius: 1em;

@@ -3,7 +3,8 @@
     <div class="logo-box">
       <img class="logo" src="../../assets/logo.png"></img>
     </div>
-    <c-button class="btn start" text="开始游戏"></c-button>
+    <c-button class="btn js-onLine" text="联机模式" @onClick="toHomeList"></c-button>
+    <c-button class="btn js-offLine" text="离线模式"></c-button>
     <c-button class="btn end" text="离开游戏"></c-button>
   </div>
 </template>
@@ -14,8 +15,9 @@
   export default {
     mounted () {
       this.setLogoAnimation()
-      this.setButtonAnimation('#home .start', 300, 2000)
-      this.setButtonAnimation('#home .end', -300, 2500)
+      this.setButtonAnimation('#home .js-offLine', 300, 2000)
+      this.setButtonAnimation('#home .js-onLine', -300, 2300)
+      this.setButtonAnimation('#home .end', 300, 2600)
     },
     methods: {
       setLogoAnimation () {
@@ -42,6 +44,9 @@
           opacity: 1,
           delay: delay
         })
+      },
+      toHomeList () {
+        this.$router.push({name: 'home-index'})
       }
     },
     components: {
@@ -64,6 +69,8 @@
       opacity: 0;
     }
     .btn {
+      display: block;
+      margin: 0 auto;
       opacity: 0;
       box-shadow: 0px 0px 0px 2px rgba(0, 0, 0, 0.2);
       margin-top: 2rem;

@@ -7,10 +7,11 @@ function resolve (src) {
 
 const webpackConfig = {
   entry: {
-    app: './src/main.js'
+    app: './src/main.js',
+    iconfont: './src/assets/iconfont.js'
   },
   output: {
-    filename: '[name].[hash:6].js',
+    filename: '[name].js',
     path: path.resolve(__dirname, '/'),
     publicPath: '/'
   },

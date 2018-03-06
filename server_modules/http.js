@@ -69,6 +69,8 @@ module.exports = (app, ws) => {
     }
   })
 
+  // 获取房间列表
+
   // 创建房间
   app.post('/createRoom', middlewares.checkLogin, async (req, res) => {
     const emptyMessage = {

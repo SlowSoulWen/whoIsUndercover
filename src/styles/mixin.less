@@ -1,0 +1,18 @@
+.multiTextOverflow (@line:1) {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  -webkit-line-clamp: @line;
+  line-height: 1.5;
+}
+
+.polka (@size, @dot, @base, @accent) {
+  background: @base;
+  background-image: 
+    radial-gradient(@accent @dot, transparent 0),
+    radial-gradient(@accent @dot, transparent 0);
+    background-size: @size @size;
+    background-position: 0 0, @size/2 @size/2;
+}
