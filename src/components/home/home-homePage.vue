@@ -6,6 +6,10 @@
       </svg>
       <span>快速匹配</span>
     </div>
+    <div class="search-box">
+      <input class="search-input" type="text">
+      <input class='search-btn' type="button" value="加入房间">
+    </div>
   </div>
 </template>
 
@@ -47,6 +51,29 @@
       .icon {
         font-size: 2.5em;
         display: block;
+      }
+    }
+
+    .search-box {
+      margin-top: 20%;
+
+      .search-input {
+        border-style: none;
+        height: 20px;
+        width: 50%;
+        padding: 0.8em 2em;
+        border-radius: 0.6em;
+        font-size: 1em;
+        border: 3px solid rgba(38, 168, 228, 1);
+      }
+
+      .search-btn {
+        width: 25%;
+        font-size: 1.2rem;
+        height: 48px;
+        border-style: none;
+        background-color: #1292CF;
+        color: #ffffff;
       }
     }
   }
