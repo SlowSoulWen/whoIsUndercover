@@ -1,7 +1,7 @@
 <template>
   <div id="home">
     <div class="logo-box">
-      <img class="logo" src="../../assets/logo.png"></img>
+      <img class="logo" src="../../assets/logo.png">
     </div>
     <c-button class="btn js-onLine" text="联机模式" @onClick="toHomeList"></c-button>
     <c-button class="btn js-offLine" text="离线模式"></c-button>

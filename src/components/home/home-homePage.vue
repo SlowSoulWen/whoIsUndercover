@@ -8,8 +8,9 @@
     </div>
     <div class="search-box">
       <input class="search-input" type="text">
-      <input class='search-btn' type="button" value="加入房间">
+      <button class='search-btn btn' type="button">加入房间</button>
     </div>
+    <button class='create-room-btn btn' type="button">创建房间</button>
   </div>
 </template>
 
@@ -28,6 +29,17 @@
     width: 100%;
     background: #FED681;
     background-image: repeating-linear-gradient(40deg, hsla(0, 0%, 100%, .1), hsla(0, 0%, 100%, .1) 20px, transparent 0, transparent 40px);
+    font-weight: bolder;
+
+    .btn {
+      margin-left: 1em;
+      border-style: none;
+      background-color: #1292CF;
+      color: #ffffff;
+      border-radius: 0.7em;
+      background: linear-gradient(-45deg, #0C95D6, #43BCF4 70%);
+      font-weight: bolder;
+    }
 
     .fast-matching {
       width: 14em;
@@ -56,25 +68,32 @@
 
     .search-box {
       margin-top: 20%;
+      display: flex;
+      justify-content: center;
 
       .search-input {
         border-style: none;
         height: 20px;
         width: 50%;
-        padding: 0.8em 2em;
+        padding: 0.5em 1em;
         border-radius: 0.6em;
-        font-size: 1em;
+        font-size: 1.4em;
         border: 3px solid rgba(38, 168, 228, 1);
       }
 
       .search-btn {
         width: 25%;
+        height: 43px;
         font-size: 1.2rem;
-        height: 48px;
-        border-style: none;
-        background-color: #1292CF;
-        color: #ffffff;
       }
+    }
+    
+    .create-room-btn {
+      width: 90%;
+      height: 55px;
+      font-size: 1.3em;
+      margin-top: 1em;
+      box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.3); 
     }
   }
 </style>
