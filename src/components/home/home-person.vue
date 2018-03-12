@@ -10,7 +10,7 @@
             <div class="record">
               <div class="win">
                 <span class="title">胜场</span>
-                <span class="count">0</span>
+                <span class="count">999</span>
               </div>
               <div class="lost">
                 <span class="title">败场</span>
@@ -21,14 +21,7 @@
       </div>
       <div class="history">
         <h3 class="title">历史战绩</h3>
-        <div class="history-game-item" v-for="(item, index) in data" :key="index">
-          <div class="game-content">
-            <span class="name">测试测试测试的房间</span>
-            <span class="time">2018-3-12</span>
-            <span class="role">卧底</span>
-          </div>
-          <span class='result-icon'>获胜</span>
-        </div>
+        <c-game-item v-for="(item, index) in data" :gameData="item" :key="index"></c-game-item>
         <div class="nothing" v-if="!data.length">暂无内容</div>
       </div>
     </scroller>
@@ -36,16 +29,26 @@
 </template>
 
 <script>
+  import cGameItem from '@common/c-game-item'
+
   export default {
     data () {
       return {
-        data: [1, 2, 3, 4, 5, 6, 7, 8, 8]
+        data: [{
+          name: '测试房间',
+          time: '2018-3-12',
+          role: '卧底',
+          result: '获胜'
+        }]
       }
     },
     methods: {
       infiniteCoursesList (done) {
         done()
       }
+    },
+    components: {
+      cGameItem
     }
   }
 </script>
@@ -165,58 +168,6 @@
         line-height: 80px;
         color: #B8B8B8;
         font-size: 1.2rem;
-      }
-
-      .history-game-item {
-        
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        padding: 10px 5px;
-
-        &::after {
-          display: block;
-          content: '';
-          clear: both;
-          visibility: hidden;
-          overflow: hidden;
-          height: 0;
-        }
-
-        .game-content {
-          float: left;
-
-          .name {
-             display: block;            
-             padding: 5px 3px;
-            .addLabel('房间名', #1FAEF2);
-          }
-
-          .time {          
-            display: inline-block;
-            padding: 5px 3px;
-            .addLabel('时间', #2DB5AB);
-          }
-
-          .role {
-            display: inline-block;
-            padding: 10px 3px;
-            .addLabel('角色', #F78CA7);
-          }
-        }
-
-        .result-icon {
-          float: right;
-          display: inline-block;
-          width: 3.5em;
-          height: 3.5em;
-          border-radius: 50%;
-          background: #1FAEF2;
-          text-align: center;
-          line-height: 3.5em;
-          color: #ffffff;
-          font-weight: bolder;
-          transform: rotate(45deg);
-        }
-
       }
     }
   }
