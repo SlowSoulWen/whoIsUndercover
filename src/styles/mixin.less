@@ -8,11 +8,16 @@
   line-height: 1.5;
 }
 
-.polka (@size, @dot, @base, @accent) {
+.bg-polka (@size, @dot, @base, @accent) {
   background: @base;
   background-image: 
     radial-gradient(@accent @dot, transparent 0),
     radial-gradient(@accent @dot, transparent 0);
     background-size: @size @size;
     background-position: 0 0, @size/2 @size/2;
+}
+
+.bg-stripe (@color, @deg) {
+  background: @color;
+  background-image: repeating-linear-gradient(@deg, hsla(0, 0%, 100%, .1), hsla(0, 0%, 100%, .1) 20px, transparent 0, transparent 40px);
 }
