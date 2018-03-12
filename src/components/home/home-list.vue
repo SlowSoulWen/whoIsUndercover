@@ -1,7 +1,7 @@
 <template>
   <div id="home-list">
     <scroller :on-infinite="infiniteCoursesList" ref="scroller">
-      <c-rooms-list-item class="room-item" v-for="(item, index) in testData" :roomData="item"></c-rooms-list-item>
+      <c-rooms-list-item class="room-item" v-for="(item, index) in testData" :key="index" :roomData="item"></c-rooms-list-item>
     </scroller>
   </div>
 </template>
@@ -50,7 +50,7 @@
   @import '~@src/styles/mixin.less';
   #home-list {
     ._v-container {
-      .polka(32px, 20%, #5FC5F6, #9EDCF9);
+      .bg-stripe(#58C2F5, 45deg);
     }
   }
 </style>

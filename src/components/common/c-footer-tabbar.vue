@@ -1,6 +1,7 @@
 <template>
-  <div id="c-footer-tabbar">
+  <div id="c-footer-tabbar" :style="{background: bgColor[active]}">
     <div v-for="(item, index) in tabbarItems"
+         :key = "index"
          class="tabbar-item" 
          :class="{ active: active === item.name }"
          @click="to(item.name)">
@@ -28,10 +29,16 @@
       name: 'home-person'
     }
   ]
+  const bgColor = {
+    'home-page': '#FECA5C',
+    'rooms-list': '#1FAEF2',
+    'home-person': '#2DB5AB'
+  }
   export default {
     data () {
       return {
         tabbarItems,
+        bgColor,
         active: ''
       }
     },
@@ -57,7 +64,6 @@
     width: 100%;
     box-sizing: border-box;
     height: 5rem;
-    background: #FECA5C;
     & > div {
       flex: 1;
       text-align: center;
@@ -69,8 +75,16 @@
         font-size: 2.8rem;
       }
     }
-    .active {
-      color: #1FAEF2;
+    .tabbar-item  {
+      &:nth-child(1).active {
+        color: #1FAEF2;
+      }
+      &:nth-child(2).active {
+        color: #FECA5C;
+      }
+      &:nth-child(3).active {
+        color: #DD5B9D;
+      }
     }
   }
 </style>
