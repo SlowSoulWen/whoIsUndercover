@@ -21,3 +21,15 @@
   background: @color;
   background-image: repeating-linear-gradient(@deg, hsla(0, 0%, 100%, .1), hsla(0, 0%, 100%, .1) 20px, transparent 0, transparent 40px);
 }
+
+.addLabel (@text, @bgColor) {
+  &::before {
+    display: inline;
+    content: @text; 
+    padding: 3px 5px;
+    margin-right: 5px;
+    background: @bgColor;
+    color: #ffffff;
+    border-radius: 0.5em;
+  }
+}
