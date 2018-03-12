@@ -30,7 +30,7 @@
     }
   ]
   const bgColor = {
-    'home-page': '#FECA5C',
+    'home-page': '#F78CA7',
     'rooms-list': '#1FAEF2',
     'home-person': '#2DB5AB'
   }
@@ -80,7 +80,7 @@
         color: #1FAEF2;
       }
       &:nth-child(2).active {
-        color: #FECA5C;
+        color: #24928B;
       }
       &:nth-child(3).active {
         color: #DD5B9D;

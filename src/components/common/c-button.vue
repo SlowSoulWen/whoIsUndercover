@@ -1,5 +1,5 @@
 <template>
-  <button class="c-button" :class="[size, isRadius ? 'border-radius' : '']" :type="type" @click="handleClick">{{ text }}</button>
+  <button class="c-button" :style="{'background': bgColor}" :class="[size, isRadius ? 'border-radius' : '']" :type="type" @click="handleClick">{{ text }}</button>
 </template>
 
 <script>
@@ -20,6 +20,10 @@
       isRadius: { // 是否圆角边框
         type: Boolean,
         default: true
+      },
+      bgColor: {
+        type: String,
+        default: 'linear-gradient(to top, #FD6B12, #FE9A5B 80%, #FD6B12)'
       }
     },
     methods: {
@@ -34,7 +38,6 @@
   .c-button {
     font-size: 1em;
     color: #ffffff;
-    background: linear-gradient(to top, #FD6B12, #FE9A5B 80%, #FD6B12);
   }
   .lg {
     padding: 1.8rem 4.8rem;

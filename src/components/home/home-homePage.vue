@@ -29,7 +29,7 @@
     left: 0;
     height: 100%;
     width: 100%;
-    .bg-stripe(#FED681, 45deg);
+    .bg-stripe(#FFAFAF, 45deg);
     font-weight: bolder;
 
     .btn {

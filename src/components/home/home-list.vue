@@ -41,7 +41,7 @@
 <style lang="less" scoped>
   #home-list {
     .room-item {
-      margin: 10px auto;
+      margin: 25px auto;
     }
   }
 </style>
