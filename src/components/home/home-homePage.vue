@@ -21,14 +21,15 @@
 </script>
 
 <style lang="less" scoped>
+  @import '~@src/styles/mixin.less';
+
   #home-homePage {
     position: absolute;
     top: 0;
     left: 0;
     height: 100%;
     width: 100%;
-    background: #FED681;
-    background-image: repeating-linear-gradient(40deg, hsla(0, 0%, 100%, .1), hsla(0, 0%, 100%, .1) 20px, transparent 0, transparent 40px);
+    .bg-stripe(#FED681, 45deg);
     font-weight: bolder;
 
     .btn {
@@ -73,8 +74,8 @@
 
       .search-input {
         border-style: none;
-        height: 20px;
-        width: 50%;
+        height: 43px;
+        width: 60%;
         padding: 0.5em 1em;
         border-radius: 0.6em;
         font-size: 1.4em;
