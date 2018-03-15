@@ -1,22 +1,26 @@
 <template>
   <div id="home-homePage">
-    <div class="fast-matching">
+    <!-- <div class="fast-matching">
       <svg class="icon" aria-hidden="true">
         <use xlink:href="#icon-renshu"></use>
       </svg>
       <span>快速匹配</span>
-    </div>
+    </div> -->
+    <create-game class="create-game-box"></create-game>
     <div class="search-box">
       <input class="search-input" type="text">
       <button class='search-btn btn' type="button">加入房间</button>
     </div>
-    <button class='create-room-btn btn' type="button">创建房间</button>
   </div>
 </template>
 
 <script>
-  export default {
+  import createGame from '@components/game/create-game.vue'
 
+  export default {
+    components: {
+      createGame
+    }
   }
 </script>
 
@@ -31,16 +35,6 @@
     width: 100%;
     .bg-stripe(#FFAFAF, 45deg);
     font-weight: bolder;
-
-    .btn {
-      margin-left: 1em;
-      border-style: none;
-      background-color: #1292CF;
-      color: #ffffff;
-      border-radius: 0.7em;
-      background: linear-gradient(-45deg, #0C95D6, #43BCF4 70%);
-      font-weight: bolder;
-    }
 
     .fast-matching {
       width: 14em;
@@ -88,13 +82,15 @@
         font-size: 1.2rem;
       }
     }
-    
-    .create-room-btn {
-      width: 90%;
-      height: 55px;
-      font-size: 1.3em;
-      margin-top: 1em;
-      box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.3); 
+
+    .btn {
+      margin-left: 1em;
+      border-style: none;
+      background-color: #1292CF;
+      color: #ffffff;
+      border-radius: 0.7em;
+      background: linear-gradient(-45deg, #0C95D6, #43BCF4 70%);
+      font-weight: bolder;
     }
   }
 </style>
