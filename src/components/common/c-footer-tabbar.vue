@@ -80,10 +80,10 @@
         color: #1FAEF2;
       }
       &:nth-child(2).active {
-        color: #24928B;
+        color: #66CC66;
       }
       &:nth-child(3).active {
-        color: #DD5B9D;
+        color: #F683A0;
       }
     }
   }

@@ -19,7 +19,7 @@
         </li>
       </ul>
       <div class="join-box">
-        <c-button class="join-btn" text="进入房间" size="sm"></c-button>
+        <c-button class="join-btn" text="进入房间" size="sm" bgColor="#2DB5AB"></c-button>
       </div>
     </div>
   </div>
@@ -46,19 +46,18 @@
     flex-direction: column;
     box-sizing: border-box;
     align-items: center;
-    box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.5);
+    box-shadow: 0px 0px 4px 2px rgba(0, 0, 0, 0.2);
     width: 85%;
     height: 110px;
     border-radius: 1em;
-    border: 4px solid #FEB65D;
-    background-color: #FED57F;
+    background-color: #ffffff;
     overflow: hidden;
 
     .room-name-box {
       box-sizing: border-box;
       width: 100%;
       padding: 0.2em 1em;
-      background: #5FC5F6;
+      background: #F78CA7;
 
       & > span {
         color: #ffffff;
