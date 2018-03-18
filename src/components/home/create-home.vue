@@ -1,6 +1,9 @@
 <template>
-  <div id="create-game">
+  <div id="create-home">
     <div class="content-box">
+      <div class="title">
+        <h3>创建房间</h3>
+      </div>
       <div class="form-item">
         <span class="name">房名</span>
         <input class="input name-input" type="text">
@@ -29,16 +32,23 @@
 </script>
 
 <style lang="less" scoped>
-#create-game {
+#create-home {
   width: 100%;
 
   .content-box {
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
     padding: 1.5rem 0;
     border-radius: 1em;
     box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.3);
     background: #ffffff;
+
+    .title {
+      text-align: center;
+      font-size: 1.8rem;
+      color: #1292CF;
+      text-shadow: 0 0 0.1em #F78CA7, 0 0 0.3em #F78CA7;
+    }
 
     .form-item {
       padding: 10px;
@@ -119,7 +129,7 @@
 </style>
 
 <style lang="less">
-  #create-game {
+  #create-home {
     .vux-inline-x-number {
       padding-left: 20px;
       vertical-align: middle;

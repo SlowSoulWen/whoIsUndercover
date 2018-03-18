@@ -1,5 +1,9 @@
 <template>
   <div id="home-homePage">
+    <div class="search-box">
+      <input class="search-input" type="text">
+      <button class='search-btn btn' type="button">加入房间</button>
+    </div>
     <!-- <div class="fast-matching">
       <svg class="icon" aria-hidden="true">
         <use xlink:href="#icon-renshu"></use>
@@ -7,15 +11,11 @@
       <span>快速匹配</span>
     </div> -->
     <create-game class="create-game-box"></create-game>
-    <div class="search-box">
-      <input class="search-input" type="text">
-      <button class='search-btn btn' type="button">加入房间</button>
-    </div>
   </div>
 </template>
 
 <script>
-  import createGame from '@components/game/create-game.vue'
+  import createGame from '@components/home/create-home.vue'
 
   export default {
     components: {
@@ -35,6 +35,7 @@
     width: 100%;
     .bg-stripe(#FFAFAF, 45deg);
     font-weight: bolder;
+    overflow: hidden;
 
     .fast-matching {
       width: 14em;
@@ -62,7 +63,8 @@
     }
 
     .search-box {
-      margin-top: 20%;
+      margin-top: 10%;
+      margin-bottom: 15%;
       display: flex;
       justify-content: center;
 
