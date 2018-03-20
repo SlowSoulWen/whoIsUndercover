@@ -1,5 +1,6 @@
 const path = require('path')
 const vuxLoader = require('vux-loader')
+var vueLoaderConfig = require('./vue-loader.conf')
 
 function resolve (src) {
   return path.resolve(__dirname, '..', src)
@@ -38,7 +39,8 @@ const webpackConfig = {
       },
       {
         test: /\.vue$/,
-        loader: 'vue-loader'
+        loader: 'vue-loader',
+        options: vueLoaderConfig
       },
       {
         test: /\.js$/,
