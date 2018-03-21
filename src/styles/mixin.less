@@ -22,7 +22,7 @@
   background-image: repeating-linear-gradient(@deg, hsla(0, 0%, 100%, .1), hsla(0, 0%, 100%, .1) 20px, transparent 0, transparent 40px);
 }
 
-.addLabel (@text, @bgColor) {
+.addLabel (@text, @bgColor, @fontSize:1rem) {
   &::before {
     display: inline;
     content: @text; 
@@ -31,5 +31,6 @@
     background: @bgColor;
     color: #ffffff;
     border-radius: 0.5em;
+    font-size: @fontSize;
   }
 }
