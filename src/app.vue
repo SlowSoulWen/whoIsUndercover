@@ -34,5 +34,10 @@
 <style lang="less">
   @import '~vux/src/styles/reset.less';
   @import '~@src/styles/base.less';
+
+  #app {
+    height: 100%;
+    width: 100%;
+  }
 </style>
  
