@@ -17,7 +17,7 @@
         <input class="input pwd-input" type="password">
       </div>
     </div>
-    <button class='create-room-btn btn' type="button">创建房间</button>
+    <button class='create-room-btn btn' type="button" @click="createRoom">创建房间</button>
   </div>
 </template>
 
@@ -25,6 +25,11 @@
   import { InlineXNumber } from 'vux'
 
   export default {
+    methods: {
+      createRoom () {
+        this.$router.push({name: 'room', params: { id: '313213131231' }})
+      }
+    },
     components: {
       InlineXNumber
     }
@@ -94,6 +99,7 @@
         vertical-align: bottom;
         padding: 0.5rem 1rem;
         font-weight: bolder;
+        font-size: 1em;
 
         &.name-input {
           color: #49B6EA;
@@ -108,22 +114,15 @@
     }
   }
 
-  .btn {
-    margin-left: 1em;
-    border-style: none;
-    background-color: #1292CF;
-    color: #ffffff;
-    border-radius: 0.7em;
-    background: linear-gradient(-45deg, #0C95D6, #43BCF4 70%);
-    font-weight: bolder;
-  }
-
   .create-room-btn {
     width: 90%;
     height: 55px;
     font-size: 1.3em;
     margin-top: 1em;
     box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.3); 
+    border-radius: 0.7em;
+    background-color: #1292CF;
+    background: linear-gradient(-45deg, #0C95D6, #43BCF4 70%);
   }
 }
 </style>
@@ -137,6 +136,10 @@
       .vux-number-selector {
         padding: 0;
         border: none;
+      }
+
+      .vux-number-input {
+        height: 25px;
       }
     }
   }
