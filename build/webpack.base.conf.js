@@ -18,7 +18,7 @@ const webpackConfig = {
   },
   resolve: {
     extensions: ['.js', '.vue', '.json'],
-    modules: ['src', 'node_modules'],
+    modules: ['node_modules', 'src'],
     alias: {
       '@config': resolve('config'),
       '@src': resolve('src'),
