@@ -8,6 +8,7 @@ const bodyParser = require('body-parser')
 module.exports = (app, ws) => {
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
+
   //  注册账号接口
   app.post('/user/register', async (req, res) => {
     const emptyMessage = {
@@ -46,6 +47,7 @@ module.exports = (app, ws) => {
         errno: 1,
         data: hasEmptyMes
       })
+      return
     }
     let userCollection = await User()
     let result = await userCollection.$findOneUser({account: user.account})
@@ -56,10 +58,11 @@ module.exports = (app, ws) => {
         data: '该账号不存在'
       })
     }
-    if (Util.encryption(user.password) === result.password) {
+    if (user.password === result.password) {
       req.session.userId = result.id
       res.json({
-        errno: 0
+        errno: 0,
+        data: result
       })
     } else {
       res.json({
@@ -84,17 +87,47 @@ module.exports = (app, ws) => {
         errno: 1,
         data: hasEmptyMes
       })
+      return false
     }
+    room.playerMaxNum = Number(room.playerMaxNum)
     room.ownerId = req.session.userId
     room.id = Util.getRandomNumber(20)
     room.status = 1
-    room.player = [].push(room.ownerId)
     let roomCollection = await Room()
+    let userCollection = await User()
+    let userMsg = await userCollection.$findOneUser({id: room.ownerId})
+    room.player = []
+    room.player.push(userMsg)
     let result = await roomCollection.$addRoom(room)
     middlewares.checkDbData(req, res, result)
     res.json({
       errno: 0,
-      data: room
+      data: {
+        roomId: room.id
+      }
+    })
+  })
+
+  // 获取房间信息
+  app.get('/getRoomDetail', async (req, res) => {
+    const emptyMessage = {
+      roomId: '房间id不能为空'
+    }
+    let query = req.query
+    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
+    if (hasEmptyMes) {
+      res.json({
+        errno: 1,
+        data: hasEmptyMes
+      })
+      return false
+    }
+    let roomCollection = await Room()
+    let result = await roomCollection.$findOneRoom({ id: query.roomId })
+    middlewares.checkDbData(req, res, result)
+    res.json({
+      errno: 0,
+      data: result
     })
   })
 

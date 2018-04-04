@@ -18,7 +18,7 @@ module.exports = {
     if (result && result.error) {
       res.json({
         errno: 1,
-        data: result.error
+        data: result.errMesage
       })
       typeof next === 'function' && next()
     }
