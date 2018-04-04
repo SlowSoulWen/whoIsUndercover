@@ -1,9 +1,9 @@
 // import { connect } from 'net'
 
 const MongoClient = require('mongodb').MongoClient
-const Config = require('../config/dev.env')
-const DB_URL = Config.DBUrl
-const DB_NAME = Config.DBName
+const Config = require('../config')
+const DB_URL = Config.dev.DBUrl
+const DB_NAME = Config.dev.DBName
 async function connectDb () {
   let db = null
   try {
