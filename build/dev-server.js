@@ -47,17 +47,18 @@ app.use(devMiddleware)
 var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 app.use(staticPath, express.static('./static'))
 
-app.use(session({
-  name: config.dev.session.key, // 设置 cookie 中保存 session id 的字段名称
-  secret: config.dev.session.secret, // 通过设置 secret 来计算 hash 值并放在 cookie 中，使产生的 signedCookie 防篡改
-  cookie: {
-    maxAge: config.dev.session.maxAge // 过期时间，过期后 cookie 中的 session id 自动删除
-  }
-  // store: new MongoStore({  // 将 session 存储到 mongodb
-  //   url: config.mongodb  // mongodb 地址
-  // })
-}))
+// app.use(session({
+//   name: config.dev.session.key, // 设置 cookie 中保存 session id 的字段名称
+//   secret: config.dev.session.secret, // 通过设置 secret 来计算 hash 值并放在 cookie 中，使产生的 signedCookie 防篡改
+//   cookie: {
+//     maxAge: config.dev.session.maxAge // 过期时间，过期后 cookie 中的 session id 自动删除
+//   }
+//   // store: new MongoStore({  // 将 session 存储到 mongodb
+//   //   url: config.mongodb  // mongodb 地址
+//   // })
+// }))
 
+app.use(require('cookie-parser')())
 app.use(require('body-parser')())
 
 const ws = websocket(io)

@@ -5,7 +5,10 @@ const Util = require('./util')
 const middlewares = require('./middlewares')
 const bodyParser = require('body-parser')
 
-module.exports = (app, ws) => {
+module.exports = async (app, ws) => {
+  let userCollection = await User()
+  let roomCollection = await Room()
+
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
 
@@ -26,7 +29,6 @@ module.exports = (app, ws) => {
     }
     user.password = Util.encryption(user.password)
     user.id = Util.getRandomNumber(20)
-    let userCollection = await User()
     let result = await userCollection.$addUser(user)
     middlewares.checkDbData(req, res, result)
     res.json({
@@ -49,7 +51,6 @@ module.exports = (app, ws) => {
       })
       return
     }
-    let userCollection = await User()
     let result = await userCollection.$findOneUser({account: user.account})
     middlewares.checkDbData(req, res, result)
     if (!result) {
@@ -59,7 +60,11 @@ module.exports = (app, ws) => {
       })
     }
     if (user.password === result.password) {
-      req.session.userId = result.id
+      // req.session.userId[result.id] = true
+      res.cookie('userId', result.id, {
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 48,
+      })
       res.json({
         errno: 0,
         data: result
@@ -73,6 +78,23 @@ module.exports = (app, ws) => {
   })
 
   // 获取房间列表
+  app.get('/getRoomsList', async (req, res) => {
+    const emptyMessage = {
+      pageIndex: '页码不能为空',
+      pageSize: '每页条数不能为空'
+    }
+    let query = req.query
+    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
+    let roomsList = await roomCollection.$findRooms({status: 1}, {
+      skip: (query.pageIndex - 1) * query.pageSize,
+      limit: Number(query.pageSize)
+    })
+    middlewares.checkDbData(req, res, roomsList)
+    res.json({
+      errno: 0,
+      data: roomsList
+    })
+  })
 
   // 创建房间
   app.post('/createRoom', middlewares.checkLogin, async (req, res) => {
@@ -90,14 +112,13 @@ module.exports = (app, ws) => {
       return false
     }
     room.playerMaxNum = Number(room.playerMaxNum)
-    room.ownerId = req.session.userId
+    room.ownerId = ''
     room.id = Util.getRandomNumber(20)
     room.status = 1
-    let roomCollection = await Room()
-    let userCollection = await User()
-    let userMsg = await userCollection.$findOneUser({id: room.ownerId})
+    // let userCollection = await User()
+    // let userMsg = await userCollection.$findOneUser({id: room.ownerId})
     room.player = []
-    room.player.push(userMsg)
+    // room.player.push(userMsg)
     let result = await roomCollection.$addRoom(room)
     middlewares.checkDbData(req, res, result)
     res.json({
@@ -122,7 +143,6 @@ module.exports = (app, ws) => {
       })
       return false
     }
-    let roomCollection = await Room()
     let result = await roomCollection.$findOneRoom({ id: query.roomId })
     middlewares.checkDbData(req, res, result)
     res.json({
@@ -134,28 +154,51 @@ module.exports = (app, ws) => {
   // 加入房间
   app.post('/joinRoom', middlewares.checkLogin, async (req, res, next) => {
     const emptyMessage = {
-      roomId: '房间id不能为空',
-      id: '用户id不能为空'
+      roomId: '房间id不能为空'    
     }
-    let user = req.body
-    user.id = req.session.userId
-    let hasEmptyMes = Util.judgeEmpty(user, emptyMessage)
+    let query = req.body
+    let userId = req.cookies.userId
+    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
     if (hasEmptyMes) {
       res.json({
         errno: 1,
         data: hasEmptyMes
       })
     }
-    let roomCollection = await Room()
-    let query = {id: user.roomId}
-    let room = await roomCollection.$findOneRoom(query)
+    // ----- 查找对应房间，看相应的房间状态是否符合加入要求 ---- //
+    let room = await roomCollection.$findOneRoom({id: query.roomId})
     middlewares.checkDbData(req, res, room)
-    room.player.push(user.id)
-    let result = await roomCollection.$updateOneRoom(query, {player: room.player})
+    if (room.player.length === room.playerMaxNum) {
+      res.json({
+        errno: 1,
+        data: '房间人数已满'
+      })
+      return false
+    } else if (room.status === 2) {
+      res.josn({
+        errno: 1,
+        data: '该房间已经开始游戏了'
+      })
+      return false
+    } else if (room.status === 3) {
+      res.json({
+        errno: 1,
+        data: '该房间已经废弃'
+      })
+      return false
+    }
+    // ---- 添加房间成员，更改房间状态 ----
+    let userMsg = await userCollection.$findOneUser({id: userId})
+    room.player.push(userMsg)
+    if (!room.ownerId) room.ownerId = userId // 如果是第一个进的，将成为房主
+    let result = await roomCollection.$updateOneRoom({id: query.roomId}, {
+      player: room.player,
+      ownerId: room.ownerId
+    })
     middlewares.checkDbData(req, res, result)
     res.json({
       errno: 0,
-      data: room
+      data: 'success'
     })
   })
 
@@ -168,7 +211,6 @@ module.exports = (app, ws) => {
         data: '房间id不能为空'
       })
     }
-    let roomCollection = await Room()
     let result = await roomCollection.$findOneRoom({ id: roomId })
     middlewares.checkDbData(req, res, result)
     res.json({
