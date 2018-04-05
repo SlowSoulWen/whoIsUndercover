@@ -56,15 +56,15 @@ module.export = async function () {
       await this.insertOne(game)
     } catch (err) {
       console.log('addGame Error：', err)
-      let res = {error: 1, errMesage: ''}
+      let res = {error: 1, errMessage: ''}
       if (err.message) {
         for (let [key, value] of Object.entries(ErrMessage)) {
           if (err.message.match(key)) {
-            res.errMesage = value
+            res.errMessage = value
           }
         }
       }
-      if (!res.errMesage) res.errMesage = err.message
+      if (!res.errMessage) res.errMessage = err.message
       return res
     }
     return {
@@ -79,7 +79,7 @@ module.export = async function () {
       console.error('findGame Error', err)
       res = {
         error: 1,
-        errMesage: err.message
+        errMessage: err.message
       }
     }
     return res
@@ -92,7 +92,7 @@ module.export = async function () {
       console.error('updateGame Error', err)
       res = {
         error: 1,
-        errMesage: err
+        errMessage: err
       }
     }
     return res

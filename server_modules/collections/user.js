@@ -1,7 +1,9 @@
 const connectDb = require('../mongodb')
+
 module.exports = async () => {
-  let db = await connectDb()
-  await db.createCollection('user', {
+  const db = await connectDb()
+
+  db.createCollection('user', {
     validator: {
       $jsonSchema: {
         bsonType: 'object',
@@ -34,12 +36,24 @@ module.exports = async () => {
           avator: {
             bsonType: 'string',
             description: '用户头像'
+          },
+          record: {
+            bsonType: 'Array',
+            description: '玩家游戏记录'
+          },
+          winCount: {
+            bsonType: 'number',
+            description: '胜场数'
+          },
+          failCount: {
+            bsonType: 'number',
+            description: '败场数'
           }
         }
       }
     }
   })
-  let user = await db.collection('user')
+  let user = db.collection('user')
   user.$createIndexes = async function () {
     await this.createIndexes([
       {
@@ -77,11 +91,11 @@ module.exports = async () => {
       if (err.message) {
         for (let [key, value] of Object.entries(ErrMessage)) {
           if (err.message.match(key)) {
-            res.errMesage = value
+            res.errMessage = value
           }
         }
       }
-      if (!res.errMesage) res.errMesage = err.message
+      if (!res.errMessage) res.errMessage = err.message
       return res
     }
     return {

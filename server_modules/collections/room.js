@@ -1,6 +1,8 @@
-const db = require('../mongodb')
+const connectDb = require('../mongodb')
 
 module.exports = async () => {
+  const db = await connectDb()
+
   db.createCollection('room', {
     validator: {
       $jsonSchema: {
@@ -42,7 +44,7 @@ module.exports = async () => {
     }
   })
   const room = db.collection('room')
-  room.$createIndexes = async () => {
+  room.$createIndexes = async function () {
     await this.createIndexes([
       {
         key: {id: 1},
@@ -62,7 +64,7 @@ module.exports = async () => {
       }
     ])
   }
-  room.$addRoom = async (room) => {
+  room.$addRoom = async function (room) {
     await this.$createIndexes()
     const ErrMessage = {
       _id: '房间id重复',
@@ -71,28 +73,27 @@ module.exports = async () => {
     try {
       await this.insertOne(room)
     } catch (err) {
-      console.log('addRoom Error：', err)
-      let res = {error: 1, errMesage: ''}
+      let res = {error: 1, errMessage: ''}
       if (err.message) {
         for (let [key, value] of Object.entries(ErrMessage)) {
           if (err.message.match(key)) {
-            res.errMesage = value
+            res.errMessage = value
           }
         }
       }
-      if (!res.errMesage) res.errMesage = err.message
+      if (!res.errMessage) res.errMessage = err.message
       return res
     }
     return {
       error: 0
     }
   }
-  room.$findOneRoom = async (query) => {
+  room.$findOneRoom = async function (query) {
     let res = null
     try {
       res = await this.findOne(query)
     } catch (err) {
-      console.log('findOneRoom Error:', err.message)
+      console.error('findOneRoom Error:', err.message)
       res = {
         error: 1,
         errMessage: err.message
@@ -100,18 +101,31 @@ module.exports = async () => {
     }
     return res
   }
-  room.$updateOneRoom = async (query, content) => {
+  room.$updateOneRoom = async function (query, content) {
     let res = null
     try {
-      res = await this.updatedOne(query, {$set: content})
+      res = await this.updateOne(query, {$set: content})
     } catch (err) {
-      console.eror('updateOneRoom Error:', err.message)
+      console.error('updateOneRoom Error:', err.message)
       res = {
         error: 1,
-        errMesage: err.message
+        errMessage: err.message
       }
     }
     return res
   }
+  room.$findRooms = async function (query, {skip = 0, limit = 100}) {
+    let res = null
+    try {
+      res = await this.find(query).skip(skip).limit(limit).toArray()
+    } catch (err) {
+      console.error('findRooms Error', err)
+      res = {
+        error: 1,
+        errMessage: err.message
+      }
+    }
+    return res
+  }  
   return room
 }
