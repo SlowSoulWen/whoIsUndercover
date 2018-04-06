@@ -42,25 +42,48 @@ async function websocket (io) {
       })
     })
 
+    // 玩家状态改变
+    socket.on('changeReadyStatus', async (data) => {
+      // 找到更改状态的玩家，更新数据库
+      let room = await roomCollection.$findOneRoom({id: _roomId})
+      let index = room.player.findIndex((player) => {
+        return player.id === data.userId
+      })
+      room.player[index].isReady = data.status
+      roomCollection.$updateOneRoom({ id: _roomId }, {
+        player: room.player
+      })
+      ROOMS.to(_roomId).emit('changeReadyStatus', room)
+    })
+
     // 有玩家离开房间
     socket.on('disconnect', async (data) => {
       //  更新数据库
       let room = await roomCollection.$findOneRoom({id: _roomId})
-      let player = room.player
-      let index = player.findIndex((player) => {
+      let index = room.player.findIndex((player) => {
         return player.id === userId
       })
-      player.splice(index, 1)
-      await roomCollection.$updateOneRoom({ id: _roomId }, {
-        player
+      room.player.splice(index, 1)
+      if (room.ownerId === userId && room.player.length) {
+        // 如果房主离开， 变更房主
+        room.ownerId = room.player[0].id
+      }
+      roomCollection.$updateOneRoom({ id: _roomId }, {
+        player: room.player,
+        ownerId: room.ownerId
       })
       socket.broadcast.to(_roomId).emit('leave', {
-        userId: userId
+        userId: userId,
+        roomDetail: room
       })
       ROOMS.clients((error, clients) => {
         if (error) console.log('clients Error:', error)
         if (!clients.length) {
-          // TODO：如果房间没人了，更改房间状态
+          console.log('no One')
+          // 如果房间没人了，更改房间状态
+          roomCollection.$updateOneRoom({ id: _roomId }, {
+            status: 3
+          })
         }
       })
     })
