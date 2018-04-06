@@ -55,20 +55,29 @@ module.exports = async () => {
       {
         key: {ownerId: 1},
         name: '_ownerId'
-      },
-      {
-        key: {roomName: 1},
-        unique: true,
-        background: true,
-        name: '_roomName'
       }
     ])
   }
   room.$addRoom = async function (room) {
     await this.$createIndexes()
     const ErrMessage = {
-      _id: '房间id重复',
-      _roomName: '房间名已存在'
+      _id: '房间id重复'
+    }
+    // 检查是否有重名的房间
+    let hasSameNameRoom = await this.find({
+      roomName: room.roomName
+    }).toArray()
+    // 如果有且尚未逻辑删除
+    if (hasSameNameRoom.length) {
+      let index = hasSameNameRoom.findIndex((room) => {
+        return room.status !== 3
+      })
+      if (index !== -1) {
+        return {
+          error: 1,
+          errMessage: '房间名已存在'
+        }
+      }
     }
     try {
       await this.insertOne(room)
