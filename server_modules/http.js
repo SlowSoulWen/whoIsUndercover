@@ -115,10 +115,7 @@ module.exports = async (app, ws) => {
     room.ownerId = ''
     room.id = Util.getRandomNumber(20)
     room.status = 1
-    // let userCollection = await User()
-    // let userMsg = await userCollection.$findOneUser({id: room.ownerId})
     room.player = []
-    // room.player.push(userMsg)
     let result = await roomCollection.$addRoom(room)
     middlewares.checkDbData(req, res, result)
     res.json({
@@ -164,9 +161,13 @@ module.exports = async (app, ws) => {
         errno: 1,
         data: hasEmptyMes
       })
+      return false
     }
     // ----- 查找对应房间，看相应的房间状态是否符合加入要求 ---- //
-    let room = await roomCollection.$findOneRoom({id: query.roomId})
+    let room = await roomCollection.$findOneRoom({
+      id: query.roomId,
+      status: 1
+    })
     middlewares.checkDbData(req, res, room)
     if (room.player.length === room.playerMaxNum) {
       res.json({
@@ -189,6 +190,7 @@ module.exports = async (app, ws) => {
     }
     // ---- 添加房间成员，更改房间状态 ----
     let userMsg = await userCollection.$findOneUser({id: userId})
+    userMsg.isReady = false // 给玩家添加一个准备状态
     room.player.push(userMsg)
     if (!room.ownerId) room.ownerId = userId // 如果是第一个进的，将成为房主
     let result = await roomCollection.$updateOneRoom({id: query.roomId}, {
@@ -203,19 +205,41 @@ module.exports = async (app, ws) => {
   })
 
   // 获取房间数据
-  app.get('/room/:id', middlewares.checkLogin, async (req, res) => {
-    const roomId = req.params.id
-    if (!roomId) {
+  // app.get('/room/:id', middlewares.checkLogin, async (req, res) => {
+  //   const roomId = req.params.id
+  //   if (!roomId) {
+  //     res.json({
+  //       errno: 1,
+  //       data: '房间id不能为空'
+  //     })
+  //   }
+  //   let result = await roomCollection.$findOneRoom({ id: roomId })
+  //   middlewares.checkDbData(req, res, result)
+  //   res.json({
+  //     errno: 0,
+  //     data: result
+  //   })
+  // })
+
+  // 搜索房间
+  app.get('/searchRoom', async (req, res) => {
+    const emptyMessage = {
+      roomName: '房间名不能为空'
+    }
+    let query = req.query
+    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
+    if (hasEmptyMes) {
       res.json({
         errno: 1,
-        data: '房间id不能为空'
+        data: hasEmptyMes
       })
+      return false
     }
-    let result = await roomCollection.$findOneRoom({ id: roomId })
-    middlewares.checkDbData(req, res, result)
+    let room = await roomCollection.$findOneRoom({ roomName: query.roomName })
+    middlewares.checkDbData(req, res, room)
     res.json({
       errno: 0,
-      data: result
+      data: room
     })
   })
 
