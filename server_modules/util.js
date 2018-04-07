@@ -6,12 +6,19 @@ module.exports = {
    * @param {Object} obj 要判空的对象
    * @param {Object} emptyMes {key(要判空的字段): value(出错信息)}
    * */
-  judgeEmpty: (obj, emptyMes) => {
+  judgeEmpty: (obj, emptyMes, res) => {
     let keys = Object.keys(emptyMes)
     let current = keys.find(element => {
       return !obj[element]
     })
-    return current ? emptyMes[current] : null
+    if (current) {
+      res.json({
+        errno: 1,
+        data: emptyMes[current]
+      })
+      return true
+    }
+    return false
   },
   /**
    * 密码加密

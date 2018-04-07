@@ -8,6 +8,7 @@ const bodyParser = require('body-parser')
 module.exports = async (app, ws) => {
   let userCollection = await User()
   let roomCollection = await Room()
+  let gameCollection = await Game()
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
@@ -20,13 +21,7 @@ module.exports = async (app, ws) => {
       nickname: '昵称不能为空'
     }
     let user = req.body
-    let hasEmptyMes = Util.judgeEmpty(user, emptyMessage)
-    if (hasEmptyMes) {
-      res.json({
-        errno: 1,
-        data: hasEmptyMes
-      })
-    }
+    if (Util.judgeEmpty(user, emptyMessage, res)) return false
     user.password = Util.encryption(user.password)
     user.id = Util.getRandomNumber(20)
     let result = await userCollection.$addUser(user)
@@ -43,14 +38,7 @@ module.exports = async (app, ws) => {
       password: '密码不能为空'
     }
     let user = req.body
-    let hasEmptyMes = Util.judgeEmpty(user, emptyMessage)
-    if (hasEmptyMes) {
-      res.json({
-        errno: 1,
-        data: hasEmptyMes
-      })
-      return
-    }
+    if (Util.judgeEmpty(user, emptyMessage, res)) return false
     let result = await userCollection.$findOneUser({account: user.account})
     middlewares.checkDbData(req, res, result)
     if (!result) {
@@ -84,7 +72,7 @@ module.exports = async (app, ws) => {
       pageSize: '每页条数不能为空'
     }
     let query = req.query
-    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
+    if (Util.judgeEmpty(query, emptyMessage, res)) return false
     let roomsList = await roomCollection.$findRooms({status: 1}, {
       skip: (query.pageIndex - 1) * query.pageSize,
       limit: Number(query.pageSize)
@@ -103,17 +91,10 @@ module.exports = async (app, ws) => {
       playerMaxNum: '游戏人数不能为空'
     }
     let room = req.body
-    let hasEmptyMes = Util.judgeEmpty(room, emptyMessage)
-    if (hasEmptyMes) {
-      res.json({
-        errno: 1,
-        data: hasEmptyMes
-      })
-      return false
-    }
+    if (Util.judgeEmpty(room, emptyMessage, res)) return false
     room.playerMaxNum = Number(room.playerMaxNum)
     room.ownerId = ''
-    room.id = Util.getRandomNumber(20)
+    room.id = Util.getRandomNumber(14)
     room.status = 1
     room.player = []
     let result = await roomCollection.$addRoom(room)
@@ -132,15 +113,11 @@ module.exports = async (app, ws) => {
       roomId: '房间id不能为空'
     }
     let query = req.query
-    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
-    if (hasEmptyMes) {
-      res.json({
-        errno: 1,
-        data: hasEmptyMes
-      })
-      return false
-    }
-    let result = await roomCollection.$findOneRoom({ id: query.roomId })
+    if (Util.judgeEmpty(query, emptyMessage, res)) return false
+    let result = await roomCollection.$findOneRoom({ 
+      id: query.roomId,
+      status: 1
+    })
     middlewares.checkDbData(req, res, result)
     res.json({
       errno: 0,
@@ -155,14 +132,7 @@ module.exports = async (app, ws) => {
     }
     let query = req.body
     let userId = req.cookies.userId
-    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
-    if (hasEmptyMes) {
-      res.json({
-        errno: 1,
-        data: hasEmptyMes
-      })
-      return false
-    }
+    if (Util.judgeEmpty(query, emptyMessage, res)) return false
     // ----- 查找对应房间，看相应的房间状态是否符合加入要求 ---- //
     let room = await roomCollection.$findOneRoom({
       id: query.roomId,
@@ -204,42 +174,85 @@ module.exports = async (app, ws) => {
     })
   })
 
-  // 获取房间数据
-  // app.get('/room/:id', middlewares.checkLogin, async (req, res) => {
-  //   const roomId = req.params.id
-  //   if (!roomId) {
-  //     res.json({
-  //       errno: 1,
-  //       data: '房间id不能为空'
-  //     })
-  //   }
-  //   let result = await roomCollection.$findOneRoom({ id: roomId })
-  //   middlewares.checkDbData(req, res, result)
-  //   res.json({
-  //     errno: 0,
-  //     data: result
-  //   })
-  // })
-
   // 搜索房间
   app.get('/searchRoom', async (req, res) => {
     const emptyMessage = {
       roomName: '房间名不能为空'
     }
     let query = req.query
-    let hasEmptyMes = Util.judgeEmpty(query, emptyMessage)
-    if (hasEmptyMes) {
-      res.json({
-        errno: 1,
-        data: hasEmptyMes
-      })
-      return false
-    }
-    let room = await roomCollection.$findOneRoom({ roomName: query.roomName })
+    if (Util.judgeEmpty(query, emptyMessage, res)) return false
+    let room = await roomCollection.$findOneRoom({ 
+      roomName: query.roomName,
+      status: 1
+    })
     middlewares.checkDbData(req, res, room)
     res.json({
       errno: 0,
       data: room
+    })
+  })
+
+  // 创建游戏
+  app.post('/createGame', middlewares.checkLogin, async (req, res) => {
+    const emptyMessage = {
+      roomId: '房间id不能为空'
+    }
+    let params = req.body
+    if(Util.judgeEmpty(params, emptyMessage, res)) return false
+    let room = await roomCollection.$findOneRoom({ 
+      id: params.roomId,
+      status: 1
+    })
+    // 后端判断是否满足游戏开始条件
+    if (room.player.length < room.playerMaxNum) {
+      res.json({
+        errno: 1,
+        data: '房间尚未满员'
+      })
+      return false
+    } else if (!room.player.every((player) => {
+      return player.id === room.ownerId || player.isReady
+    })) {
+      res.json({
+        errno: 1,
+        data: '有玩家尚未准备'
+      })
+      return false
+    }
+    // 创建游戏房间
+    let game = {}
+    game.id = Util.getRandomNumber(10)
+    game.roomId = room.id
+    game.number = room.playerMaxNum
+    game.player = room.player.map((player) => {
+      return {
+        id: player.id,
+        account: player.account,
+        nickname: player.nickname,
+        isReady: false,
+        poll: 0, // 投票数
+        isOut: false, // 淘汰标志
+        identity: 0 // 身份 0、平民 1、卧底
+      }
+    })
+    // 随机分配1/3玩家为卧底身份
+    for (let i = 0; i < Math.floor(game.player.length/3); i++) {
+      let index = Math.floor(Math.random() * game.player.length)
+      if (game.player[index].identity) {
+        i--
+        continue
+      }
+      game.player[index].identity = 1
+    }
+    game.result = 0
+    game.keywrod = ['诸葛亮', '庞统']
+    let result = await gameCollection.$newGame(game)
+    middlewares.checkDbData(req, res, result)
+    res.json({
+      errno: 0,
+      data: {
+        gameId: game.id
+      }
     })
   })
 
@@ -251,6 +264,7 @@ module.exports = async (app, ws) => {
       id: '游戏id不能为空'
     }
     const game = req.body
+    if (Util.judgeEmpty(game, emptyMessage, res)) return false
     let gameCollection = await Game()
     let roomCollection = await Room()
     // 获取相应房间信息

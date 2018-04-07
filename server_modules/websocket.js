@@ -45,7 +45,10 @@ async function websocket (io) {
     // 玩家状态改变
     socket.on('changeReadyStatus', async (data) => {
       // 找到更改状态的玩家，更新数据库
-      let room = await roomCollection.$findOneRoom({id: _roomId})
+      let room = await roomCollection.$findOneRoom({
+        id: _roomId,
+        status: 1 
+      })
       let index = room.player.findIndex((player) => {
         return player.id === data.userId
       })
@@ -76,16 +79,27 @@ async function websocket (io) {
         userId: userId,
         roomDetail: room
       })
-      ROOMS.clients((error, clients) => {
+      ROOMS.clients(async (error, clients) => {
         if (error) console.log('clients Error:', error)
         if (!clients.length) {
-          console.log('no One')
-          // 如果房间没人了，更改房间状态
+          // 如果房间没人了，且不是游戏中的状态，将房间废弃
+          let room = await roomCollection.$findOneRoom({id: _roomId})
+          if (room.status === 2) return
           roomCollection.$updateOneRoom({ id: _roomId }, {
             status: 3
           })
         }
       })
+    })
+
+    // 房主开始游戏
+    socket.on('joinGame', async (data) => {
+      let room = await roomCollection.$updateOneRoom({
+        id: _roomId
+      }, {
+        status: 2
+      })
+      ROOMS.to(_roomId).emit('joinGame', data)
     })
   })
 
