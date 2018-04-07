@@ -1,12 +1,13 @@
-const db = require('../mongodb')
+const connectDb = require('../mongodb')
 
-module.export = async function () {
+module.exports = async () => {
+  const db = await connectDb()
+
   db.createCollection('game', {
-    ignoreUndefined: true,
     validator: {
       $jsonSchema: {
         bsonType: 'object',
-        required: [ 'id', 'roomId', 'player', 'keywrod', 'gameResult' ],
+        required: [ 'id', 'roomId', 'player', 'keywrod', 'result', 'number' ],
         properties: {
           id: {
             bsonType: 'string',
@@ -24,20 +25,20 @@ module.export = async function () {
             bsonType: 'array',
             description: '游戏关键字'
           },
-          gameResult: {
-            enum: [ 1, 2 ],
-            description: '游戏结果: 1.平民胜利, 2.卧底胜利'
+          number: {
+            bsonType: 'number',
+            description: '玩家人数'
           },
-          gameChat: {
-            bsonType: 'array',
-            description: '游戏聊天记录'
+          result: {
+            enum: [ 0, 1, 2 ],
+            description: '游戏结果: 0.无结果 1.平民胜利, 2.卧底胜利'
           }
         }
       }
     }
   })
   const game = db.collection('game')
-  game.$createIndexes = async () => {
+  game.$createIndexes = async function () {
     await this.createIndexes([
       {
         key: {id: 1},
@@ -47,7 +48,7 @@ module.export = async function () {
       }
     ])
   }
-  game.$newGame = async (game) => {
+  game.$newGame = async function (game) {
     await this.$createIndexes()
     const ErrMessage = {
       _id: '游戏id重复'
@@ -71,7 +72,7 @@ module.export = async function () {
       error: 0
     }
   }
-  game.$findGame = async (query) => {
+  game.$findGame = async function (query) {
     let res = null
     try {
       res = await this.findOne(query)
@@ -84,7 +85,7 @@ module.export = async function () {
     }
     return res
   }
-  game.$updateGame = async (query, content) => {
+  game.$updateGame = async function (query, content) {
     let res = null
     try {
       res = await this.updateOne(query, {$set: content})
@@ -97,4 +98,5 @@ module.export = async function () {
     }
     return res
   }
+  return game
 }
