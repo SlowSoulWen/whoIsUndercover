@@ -72,7 +72,7 @@ module.exports = async () => {
       error: 0
     }
   }
-  game.$findGame = async function (query) {
+  game.$findOneGame = async function (query) {
     let res = null
     try {
       res = await this.findOne(query)
@@ -85,7 +85,7 @@ module.exports = async () => {
     }
     return res
   }
-  game.$updateGame = async function (query, content) {
+  game.$updateOneGame = async function (query, content) {
     let res = null
     try {
       res = await this.updateOne(query, {$set: content})
