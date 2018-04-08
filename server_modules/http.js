@@ -301,14 +301,43 @@ module.exports = async (app, ws) => {
   })
 
   // 获取游戏内容
-  app.get('/game/:id', middlewares.checkLogin, async (req, res) => {
-    let gameId = req.params.id
-    let gameCollection = await Game()
-    let result = await gameCollection.$findGame({id: gameId})
-    middlewares.checkDbData(req, res, result)
+  app.get('/getGameDetail', middlewares.checkLogin, async (req, res) => {
+    const emptyMessage = {
+      userId: '用户id不能为空',
+      gameId: '游戏id不能为空'
+    }
+    let query = req.query
+    if (Util.judgeEmpty(query, emptyMessage, res)) return false
+    let game = await gameCollection.$findOneGame({id: query.gameId})
+    middlewares.checkDbData(req, res, game)
+    let selfData = game.player.find((player) => {
+      return player.id === query.userId
+    })
+    if (!selfData) {
+      res.json({
+        errno: 1,
+        data: '您不是本局游戏的玩家'
+      })
+      return false
+    }
+    let reqData = {
+      gameId: game.id,
+      number: game.number,
+      roomId: game.roomId,
+      player: game.player.map((player) => {
+        return {
+          id: player.id,
+          nickname: player.nickname,
+          isOut: player.isOut,
+          poll: player.poll
+        }
+      }),
+      keywrod: game.keywrod[selfData.identity],
+      isOut: selfData.isOut
+    }
     res.json({
       errno: 0,
-      data: result
+      data: reqData
     })
   })
 

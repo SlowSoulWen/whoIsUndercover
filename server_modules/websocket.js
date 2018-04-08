@@ -4,6 +4,7 @@ const Game = require('./collections/game')
 
 async function websocket (io) {
   const roomCollection = await Room()
+  const gameCollection = await Game()
 
   // namespaces
   // 游戏大厅
@@ -105,13 +106,69 @@ async function websocket (io) {
 
   // 初始化游戏namespace
   GAMES.on('connection', (socket) => {
+    let query = socket.handshake.query
+    let _userId = query.userId
+    let _gameId = query.gameId
+    let _nickName = query.nickName
+    let gamer = []
+    let rounds = 0 // 回合数
+    let currentSpeakGamer = 0 // 当前发言的玩家
+    let time = 90
+    
+    // 玩家准备
+    socket.on('ready', async (data) => {
+      let game = await gameCollection.$findOneGame({ id: _gameId })
+      let allReady = true
+      game.player.forEach((player) => {
+        if (player.id === _userId) player.isReady = true
+        if (!player.isReady) allReady = false
+      })
+      gamer = game.player
+      gameCollection.$updateOneGame({ id: _gameId }, {
+        player: gamer
+      })
+      // 如果所有玩家都准备完毕
+      if (allReady) {
+        GAMES.to(_gameId).emit('newRound', { rounds: ++rounds })
+        GAMES.to(_gameId).emit('speak', {
+          userId: gamer[currentSpeakGamer].id,
+          time
+        })
+      }
+    })
+
+    // 玩家停止发言
+    socket.on('stopSpeak', () => {
+      let userId = null
+      for (let i = currentSpeakGamer + 1; i < gamer.length; i++) {
+        if (!gamer[i].isOut) {
+          currentSpeakGamer = i
+          userId = gamer[i].id
+          break
+        }
+      }
+      if (!userId) {
+        // userId为null说明所有玩家已经发言完毕，该轮发言已经结束
+        // 发起投票环节
+        GAMES.to(_gameId).emit('vote')
+        return
+      }
+      GAMES.to(_gameId).emit('speak', {
+        userId,
+        time
+      })
+    })
+
     // 玩家发言
     socket.on('message', (data) => {
-      // TODO 将玩家发言内容存储到数据库
+      GAMES.to(_roomId).emit('message', {
+        message: data.message,
+        userId: userId
+      })
     })
     // 玩家离开
     socket.on('disconnect', (data) => {
-      // TODO
+      // TODO 玩家离开游戏，即认定为出局
     })
   })
 
