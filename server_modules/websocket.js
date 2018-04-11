@@ -95,7 +95,7 @@ async function websocket (io) {
 
     // 房主开始游戏
     socket.on('joinGame', async (data) => {
-      let room = await roomCollection.$updateOneRoom({
+      roomCollection.$updateOneRoom({
         id: _roomId
       }, {
         status: 2
@@ -107,13 +107,13 @@ async function websocket (io) {
   // 初始化游戏namespace
   GAMES.on('connection', (socket) => {
     let query = socket.handshake.query
+    let _roomId = query.roomId
     let _userId = query.userId
     let _gameId = query.gameId
     let _nickName = query.nickName
-    let gamer = []
-    let rounds = 0 // 回合数
-    let currentSpeakGamer = 0 // 当前发言的玩家
-    let time = 90
+    let _time = 90
+
+    socket.join(_gameId, () => {})
     
     // 玩家准备
     socket.on('ready', async (data) => {
@@ -123,49 +123,140 @@ async function websocket (io) {
         if (player.id === _userId) player.isReady = true
         if (!player.isReady) allReady = false
       })
-      gamer = game.player
       gameCollection.$updateOneGame({ id: _gameId }, {
-        player: gamer
+        player: game.player
       })
       // 如果所有玩家都准备完毕
       if (allReady) {
-        GAMES.to(_gameId).emit('newRound', { rounds: ++rounds })
+        GAMES.to(_gameId).emit('newRound')
         GAMES.to(_gameId).emit('speak', {
-          userId: gamer[currentSpeakGamer].id,
-          time
+          userId: game.player[0].id,
+          time: _time
         })
       }
     })
 
     // 玩家停止发言
-    socket.on('stopSpeak', () => {
+    socket.on('stopSpeak', async () => {
       let userId = null
-      for (let i = currentSpeakGamer + 1; i < gamer.length; i++) {
-        if (!gamer[i].isOut) {
-          currentSpeakGamer = i
-          userId = gamer[i].id
+      let game = await gameCollection.$findOneGame({ id: _gameId })
+      let players = game.player
+      let index = players.findIndex((player) => {
+        return player.id === _userId
+      })
+      for (let i = index + 1; i < players.length; i++) {
+        if (!players[i].isOut) {
+          userId = players[i].id
           break
         }
       }
       if (!userId) {
         // userId为null说明所有玩家已经发言完毕，该轮发言已经结束
         // 发起投票环节
-        GAMES.to(_gameId).emit('vote')
+        GAMES.to(_gameId).emit('vote', {
+          time: _time
+        })
         return
       }
       GAMES.to(_gameId).emit('speak', {
         userId,
-        time
+        time: _time
       })
     })
 
     // 玩家发言
     socket.on('message', (data) => {
-      GAMES.to(_roomId).emit('message', {
+      GAMES.to(_gameId).emit('message', {
         message: data.message,
-        userId: userId
+        userId: _userId
       })
     })
+
+    // 玩家投票
+    socket.on('vote', async (data) => {
+      let voteId = data.userId
+      let game = await gameCollection.$findOneGame({ id: _gameId })
+      let players = game.player
+      let noOutNum = 0 // 剩余玩家数量
+      let allVoted = true
+      let maxPollPlayer = {
+        polls: -1,
+        index: -1,
+        userId: '',
+        identity: -1
+      }
+      let hasSame = false // 是否有不止一个最高票
+      players.forEach((player, index) => {
+        if (player.isOut) return
+        noOutNum++
+        if (player.id === _userId) player.isVoted = true
+        if (player.id === voteId) player.poll++
+        if (!player.isVoted) allVoted = false
+        if (player.poll > maxPollPlayer.polls) {
+          hasSame = false
+          maxPollPlayer.polls = player.poll
+          maxPollPlayer.index = index
+          maxPollPlayer.userId = player.id
+          maxPollPlayer.identity = player.identity
+        } else if (player.poll === maxPollPlayer.polls) {
+          hasSame = true
+        }
+      })
+      if (allVoted) { // 如果所有玩家都投票完毕，计算投票结果
+        if (hasSame) { // 1、最高票有重复，本轮投票不淘汰玩家
+          GAMES.to(_gameId).emit('out', {})
+        } else { // 2、淘汰最高票玩家，检查游戏是否结束
+          players[maxPollPlayer.index].isOut = true
+          GAMES.to(_gameId).emit('out', {
+            userId: maxPollPlayer.userId,
+            identity: maxPollPlayer.identity
+          })
+          let hasUndercover = players.some((player) => {
+            return !player.isOut && player.identity === 1
+          })
+          if (!hasUndercover) { // 卧底全部被淘汰，平民胜利
+            GAMES.to(_gameId).emit('gameOver', {
+              winer: 0, // 0、平民胜利 1、卧底胜利
+              keywrod: game.keywrod
+            })
+            gameCollection.$updateOneGame({ id: _gameId }, { result: 0 })
+            roomCollection.$findOneRoom({ id: _roomId }, { status: 1 })
+            return
+          } else {
+            if (noOutNum <= 3) { // 卧底撑到最后三人，卧底胜利
+              GAMES.to(_gameId).emit('gameOver', {
+                winer: 1, // 0、平民胜利 1、卧底胜利
+                keywrod: game.keywrod
+              })
+              gameCollection.$updateOneGame({ id: _gameId }, { result: 1 })
+              roomCollection.$findOneRoom({ id: _roomId }, { status: 1 })
+              return
+            }
+          }
+        }
+        players.forEach((player) => { // 该轮投票结束，重置玩家状态
+          if (player.isOut) return
+          player.isVoted = false
+          player.poll = 0
+        })
+
+        // 进行下一轮发言
+        let index = players.findIndex((player) => {
+          return !player.isOut
+        })
+        GAMES.to(_gameId).emit('newRound')
+        GAMES.to(_gameId).emit('speak', {
+          userId: players[index].id,
+          time: _time
+        })
+      }
+
+      gameCollection.$updateOneGame({ id: _gameId }, {
+        player: players
+      })
+
+    })
+    
     // 玩家离开
     socket.on('disconnect', (data) => {
       // TODO 玩家离开游戏，即认定为出局

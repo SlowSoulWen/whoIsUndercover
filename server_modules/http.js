@@ -232,6 +232,7 @@ module.exports = async (app, ws) => {
         isReady: false,
         poll: 0, // 投票数
         isOut: false, // 淘汰标志
+        isVoted: false, // 投票标志
         identity: 0 // 身份 0、平民 1、卧底
       }
     })
