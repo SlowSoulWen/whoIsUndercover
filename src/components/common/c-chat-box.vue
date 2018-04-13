@@ -2,27 +2,69 @@
   <div class="c-chat-box">
     <div class="comment">
       <scroller :on-infinite="infiniteChatDialog" ref="scroller">
-        <c-chat-dialog v-for="(item, index) in 5" :key="index"></c-chat-dialog>
+        <template v-for="item in chatData">
+          <c-chat-dialog v-if="item.chatType == 2" :key="item.userId" :message="item.data" :user="item.user"></c-chat-dialog>
+          <c-chat-prompt v-else-if="item.chatType == 1" :key="item.userId" :message="item.data" :type="item.type"></c-chat-prompt>
+        </template>
       </scroller>
     </div>
     <div class="input-box">
-      <input class="chat-input" type="text">
-      <button class="btn submit">发送</button>
+      <input class="chat-input" type="text" v-model="message">
+      <button class="btn submit" @click="send">发送</button>
     </div>
   </div>
 </template>
 
 <script>
   import cChatDialog from '@common/c-chat-dialog.vue'
+  import cChatPrompt from '@common/c-chat-prompt.vue'
 
   export default {
+    data () {
+      return {
+        message: ''
+      }
+    },
+    props: {
+      chatData: {
+        type: Array,
+        default: function () {
+          return []
+        }
+      },
+      sendable: {
+        type: Boolean,
+        default: true
+      }
+    },
     methods: {
       infiniteChatDialog (done) {
         done()
+      },
+      send () {
+        if (!this.sendable) {
+          this.$vux.toast.show({
+            text: '您还不能发言',
+            type: 'warn'
+          })
+          return false
+        }
+        if (!this.message) {
+          this.$vux.toast.show({
+            text: '发送内容不能为空',
+            type: 'warn'
+          })
+          return false
+        }
+        this.$emit('msgSend', {
+          message: this.message
+        })
+        this.message = ''
       }
     },
     components: {
-      cChatDialog
+      cChatDialog,
+      cChatPrompt
     }
   }
 </script>

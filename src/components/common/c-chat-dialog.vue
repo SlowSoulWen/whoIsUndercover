@@ -2,8 +2,8 @@
   <div class="c-chat-dialog">
     <c-avatar class="avatar"></c-avatar>
     <div class='dialog-content'>
-      <h4>慢灵魂</h4>
-      <span>测试的对的户外回</span>
+      <h4>{{ user.nickname }}</h4>
+      <span>{{ message }}</span>
     </div>
   </div>
 </template>
@@ -12,6 +12,18 @@
   import cAvatar from '@common/c-avatar.vue'
 
   export default {
+    props: {
+      user: {
+        type: Object,
+        default: function () {
+          return {}
+        }
+      },
+      message: {
+        type: String,
+        default: ''
+      }
+    },
     components: {
       cAvatar
     }
@@ -25,6 +37,7 @@
     line-height: 50px;
     display: flex;
     padding: 2px 3px;
+    text-align: left;
 
     .avatar {
       width: 40px;

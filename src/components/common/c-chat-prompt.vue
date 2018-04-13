@@ -7,9 +7,9 @@
 <script>
 export default {
   props: {
-    message: String,  // 聊天提示信息
-    type: {           // 聊天提示类型 1、正常提示 2、出错提示
-      type: 'number',
+    message: String, // 系统提示信息
+    type: { // 系统提示类型 1、正常提示 2、出错提示
+      type: Number,
       default: 1
     }
   }
@@ -25,10 +25,11 @@ export default {
 
     & > span {
       display: inline-block;
-      padding: 0.1em 0.5em;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 0.2em; 
-      color: #666;
+      padding: 0 5px;
+      background: rgba(0,0,0, 0.3);
+      border-radius: 0.3em;
+      color: #fff;
+      line-height: 30px;
     }
   }
 </style>

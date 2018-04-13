@@ -15,11 +15,11 @@
           <svg class="icon" aria-hidden="true">
             <use xlink:href="#icon-renshu"></use>
           </svg>
-          <span>房间人数：{{ roomData.playersNum }} / {{ roomData.playerMaxNum }}</span>
+          <span>房间人数：{{ roomData.player.length }} / {{ roomData.playerMaxNum }}</span>
         </li>
       </ul>
       <div class="join-box">
-        <c-button class="join-btn" text="进入房间" size="sm" bgColor="#2DB5AB"></c-button>
+        <c-button class="join-btn" text="进入房间" size="sm" bgColor="#2DB5AB" @onClick="joinRoom"></c-button>
       </div>
     </div>
   </div>
@@ -32,6 +32,16 @@
       roomData: {
         type: Object,
         default: {}
+      }
+    },
+    methods: {
+      joinRoom () {
+        this.$router.push({
+          name: 'room',
+          params: {
+            id: this.roomData.id
+          }
+        })
       }
     },
     components: {

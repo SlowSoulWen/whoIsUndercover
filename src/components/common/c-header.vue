@@ -1,17 +1,32 @@
 <template>
   <div class="c-header">
-    <svg class="icon" aria-hidden="true">
+    <svg class="icon" aria-hidden="true" @click="handleBack">
       <use xlink:href="#icon-solid-home"></use>
     </svg>
-    <span class="home-name">一起来玩吧</span>
-    <span class="home-id">（id: 123134123231）</span>
+    <span class="home-name">{{roomName}}</span>
+    <span class="home-id">{{ `（id: ${ id }）` }}</span>
   </div>
 </template>
 
 
 <script>
   export default {
-
+    props: {
+      roomName: String,
+      id: String
+    },
+    methods: {
+      handleBack () {
+        let _this = this
+        this.$vux.confirm.show({
+          title: '提示',
+          content: '确定要离开房间吗?',
+          onConfirm () {
+            _this.$router.go(-1)
+          }
+        })
+      }
+    }
   }
 </script>
 
