@@ -220,7 +220,7 @@ async function websocket (io) {
               keywrod: game.keywrod
             })
             gameCollection.$updateOneGame({ id: _gameId }, { result: 0 })
-            roomCollection.$findOneRoom({ id: _roomId }, { status: 1 })
+            roomCollection.$updateOneRoom({ id: _roomId }, { status: 1 })
             return
           } else {
             if (noOutNum <= 3) { // 卧底撑到最后三人，卧底胜利
@@ -229,7 +229,7 @@ async function websocket (io) {
                 keywrod: game.keywrod
               })
               gameCollection.$updateOneGame({ id: _gameId }, { result: 1 })
-              roomCollection.$findOneRoom({ id: _roomId }, { status: 1 })
+              roomCollection.$updateOneRoom({ id: _roomId }, { status: 1 })
               return
             }
           }
