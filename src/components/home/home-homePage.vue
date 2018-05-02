@@ -1,8 +1,8 @@
 <template>
   <div id="home-homePage">
     <div class="search-box">
-      <input class="search-input" type="text">
-      <button class='search-btn btn' type="button">加入房间</button>
+      <input class="search-input" type="text" placeholder="输入房间名" v-model="roomName">
+      <button class='search-btn btn' type="button" @click="searchRoom">加入房间</button>
     </div>
     <!-- <div class="fast-matching">
       <svg class="icon" aria-hidden="true">
@@ -16,8 +16,45 @@
 
 <script>
   import createGame from '@components/home/create-home.vue'
+  import { roomModel } from '@src/config/request-map'
 
   export default {
+    data () {
+      return {
+        roomName: ''
+      }
+    },
+    methods: {
+      async searchRoom () {
+        if (!this.roomName) {
+          this.$vux.toast.show({
+            type: 'warn',
+            text: '房间名不能为空'
+          })
+          return false
+        }
+        let data = (await roomModel.searchRoom(this.roomName)).data
+        this.roomName = ''
+        if (data.errno) {
+          this.$vux.alert.show({
+            title: '出错了',
+            content: data.data
+          })
+          return false
+        } else if (!data.data) {
+          this.$vux.alert.show({
+            title: '提示',
+            content: '未找到相关的房间'
+          })
+          return false
+        }
+        let roomId = data.data.id
+        this.$router.push({
+          name: 'room',
+          params: { id: roomId }
+        })
+      }
+    },
     components: {
       createGame
     }

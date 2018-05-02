@@ -3,52 +3,64 @@
     <scroller :on-infinite="infiniteCoursesList" ref="scroller">
       <div class="mime-msg-box">
           <div class="avatar-box">
-            <img class="avatar" src="http://oo917ps5l.bkt.clouddn.com/user.jpg" alt="">
+            <c-avatar class="avatar" :src="avator"></c-avatar>
           </div>
           <div class="msg-content">
-            <span class="name">hhhhh</span>
+            <span class="name">{{nickname || '未登录'}}</span>
             <div class="record">
               <div class="win">
                 <span class="title">胜场</span>
-                <span class="count">999</span>
+                <span class="count">{{winCount || 0}}</span>
               </div>
               <div class="lost">
                 <span class="title">败场</span>
-                <span class="count">0</span>
+                <span class="count">{{failCount || 0}}</span>
               </div>
             </div>
           </div>
       </div>
-      <div class="history">
+      <div class="history" v-if="id">
         <h3 class="title">历史战绩</h3>
-        <c-game-item v-for="(item, index) in data" :gameData="item" :key="index"></c-game-item>
-        <div class="nothing" v-if="!data.length">暂无内容</div>
+        <c-game-item v-for="(item, index) in record" :gameData="item" :key="index"></c-game-item>
+        <div class="nothing" v-if="!record.length">暂无内容</div>
       </div>
+      <button v-if="!id" class="login-btn btn" @click="toLogin">立即登录</button>
     </scroller>
   </div>
 </template>
 
 <script>
   import cGameItem from '@common/c-game-item'
+  import { mapState } from 'vuex'
+  import cAvatar from '@common/c-avatar'
 
   export default {
     data () {
-      return {
-        data: [{
-          name: '测试房间',
-          time: '2018-3-12',
-          role: '卧底',
-          result: '获胜'
-        }]
-      }
+      return {}
+    },
+    computed: {
+      ...mapState('User', [
+        'id',
+        'avator',
+        'nickname',
+        'winCount',
+        'failCount',
+        'record'
+      ])
     },
     methods: {
       infiniteCoursesList (done) {
         done()
+      },
+      toLogin () {
+        this.$router.push({
+          name: 'login'
+        })
       }
     },
     components: {
-      cGameItem
+      cGameItem,
+      cAvatar
     }
   }
 </script>
@@ -169,6 +181,16 @@
         color: #B8B8B8;
         font-size: 1.2rem;
       }
+    }
+
+    .login-btn {
+      display: block;
+      margin: 0 auto;
+      margin-top: 50px;
+      padding: 1.5rem 4rem;
+      font-size: 1.5rem;
+      background: @global-blue;
+      box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.4);
     }
   }
 </style>

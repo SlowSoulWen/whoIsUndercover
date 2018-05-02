@@ -4,7 +4,7 @@
       <c-header :roomName="roomName" :id="id"></c-header>
       <div class="gamer-content">
         <div v-for="item in player" :key="item.id" class="gamer-box">
-          <c-avatar class="avatar" src="http://oo917ps5l.bkt.clouddn.com/user.jpg"></c-avatar>
+          <c-avatar class="avatar" :src="item.avator"></c-avatar>
           <span class="gamer-name">{{ item.nickname }}</span>
           <div class="isOwner" v-if="ownerId === item.id">房主</div>
           <div class="isReady" v-else-if="item.isReady">
@@ -51,6 +51,7 @@
   import cChatBox from '@common/c-chat-box.vue'
   import { roomModel, gameModel } from '@src/config/request-map'
   import io from 'socket.io-client'
+  import { shareAll } from '@src/config/wechat-api'
 
   export default {
     data () {
@@ -83,6 +84,20 @@
       })
       this.initSocketHandlers()
     },
+    updated () {
+      let shareInfo = {
+        title: '就差你了，来一局紧张刺激的小游戏吧！',
+        subTitle: `${this.$store.state.User.nickname}邀请你加入${this.roomName}房间`,
+        imageUrl: 'http://oo917ps5l.bkt.clouddn.com/u=1569065380,2610568000&fm=27&gp=0.jpg',
+        widgetExtra: {
+          type: '1',
+          ids: {
+            courseId: this.courseId
+          }
+        }
+      }
+      shareAll(shareInfo)
+    },
     methods: {
       async joinRoom () { // 请求加入房间
         let res = (await roomModel.joinRoom(this.id)).data
@@ -92,7 +107,9 @@
             title: '出错了',
             content: res.data,
             onHide () {
-              _this.$router.go(-1)
+              _this.$router.replace({
+                name: 'home-index'
+              })
             }
           })
           return false
@@ -117,17 +134,17 @@
       },
       async initSocketHandlers () {
         // 玩家加入
-        this.roomSocket.on('join', async (data) => {
+        this.roomSocket.on('join', (data) => {
           this.chatData.push({
             chatType: 1, // 1、系统消息 2、玩家发言
             data: `欢迎${data.nickName}加入房间`,
             type: 1, // 系统消息类型, 1、正常提示 2、出错提示
             userId: data.userId
           })
-          await this.initRoomDeatil()
+          this.initRoomDeatil()
         })
         // 有玩家离开
-        this.roomSocket.on('leave', async (data) => {
+        this.roomSocket.on('leave', (data) => {
           let userId = data.userId
           let player = this.player.find((player) => {
             return player.id === userId
@@ -137,7 +154,7 @@
             data: `玩家${player.nickname}离开了房间`,
             type: 1
           })
-          await this.updateRoomDetail(data.roomDetail)
+          this.updateRoomDetail(data.roomDetail)
         })
         // 接受其他玩家发言
         this.roomSocket.on('message', async (data) => {
@@ -163,7 +180,7 @@
       },
       // 玩家发言
       handleMsgSend (data) {
-        this.roomSocket.emit('message', {
+        this.roomSocket.send({
           message: data.message
         })
       },
@@ -209,7 +226,7 @@
         this.$router.push({
           name: 'game',
           params: {
-            gameId
+            id: gameId
           }
         })
       },

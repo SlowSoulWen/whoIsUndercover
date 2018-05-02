@@ -6,15 +6,15 @@
       </div>
       <div class="form-item">
         <span class="name">房名</span>
-        <input class="input name-input" type="text">
+        <input class="input name-input" type="text" v-model="roomName">
       </div>
       <div class="form-item">
         <span class="numbers">人数</span>
-        <inline-x-number :min="4" :max="6" button-style="round"></inline-x-number>
+        <inline-x-number :min="4" :max="6" button-style="round" v-model="playerMaxNum"></inline-x-number>
       </div>
       <div class="form-item">
         <span class="password">密码</span>
-        <input class="input pwd-input" type="password">
+        <input class="input pwd-input" type="password" v-model="roomPwd">
       </div>
     </div>
     <button class='create-room-btn btn' type="button" @click="createRoom">创建房间</button>
@@ -23,11 +23,38 @@
 
 <script>
   import { InlineXNumber } from 'vux'
+  import { roomModel } from '@src/config/request-map'
 
   export default {
+    data () {
+      return {
+        roomName: '',
+        playerMaxNum: 4,
+        roomPwd: ''
+      }
+    },
     methods: {
-      createRoom () {
-        this.$router.push({name: 'room', params: { id: '313213131231' }})
+      async createRoom () {
+        if (!this.roomName || !this.playerMaxNum) {
+          this.$vux.toast.show({
+            text: '请先完善房间信息',
+            type: 'warn'
+          })
+          return false
+        }
+        let res = await roomModel.createRoom({
+          roomName: this.roomName,
+          playerMaxNum: this.playerMaxNum,
+          roomPwd: this.roomPwd
+        })
+        if (res.errno) {
+          this.$vux.alert.show({
+            title: '提示',
+            content: res.data
+          })
+          return false
+        }
+        this.$router.push({name: 'room', params: { id: res.data.roomId }})
       }
     },
     components: {

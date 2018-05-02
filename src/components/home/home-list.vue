@@ -1,34 +1,34 @@
 <template>
   <div id="home-list">
     <scroller :on-infinite="infiniteCoursesList" ref="scroller">
-      <c-rooms-list-item class="room-item" v-for="(item, index) in testData" :key="index" :roomData="item"></c-rooms-list-item>
+      <c-rooms-list-item class="room-item" v-for="(item, index) in roomList" :key="index" :roomData="item"></c-rooms-list-item>
     </scroller>
   </div>
 </template>
 
 <script>
   import cRoomsListItem from '@common/c-rooms-list-item'
+  import { roomModel } from '@src/config/request-map'
+
   export default {
     data () {
       return {
-        testData: [
-          {
-            roomName: '这是测试用的房间名',
-            status: 1, // 1.等待中, 2.游戏中, 3.已废弃
-            playersNum: 3,
-            playerMaxNum: 5
-          },
-          {
-            roomName: '这是测试用的房间名2',
-            status: 2, // 1.等待中, 2.游戏中, 3.已废弃
-            playersNum: 5,
-            playerMaxNum: 5
-          }
-        ]
+        pageIndex: 1,
+        noMoreData: false,
+        roomList: []
       }
     },
+    async created () {
+      let data = (await roomModel.getRoomsList({pageIndex: this.pageIndex})).data
+      this.roomList = data.data
+    },
     methods: {
-      infiniteCoursesList (done) {
+      async infiniteCoursesList (done) {
+        if (this.noMoreData) {
+          this.$refs.scroller.finishInfinite()
+          return
+        }
+        this.$refs.scroller.finishInfinite()
         done()
       }
     },

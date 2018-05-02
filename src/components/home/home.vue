@@ -4,14 +4,16 @@
       <img class="logo" src="../../assets/logo.png">
     </div>
     <c-button class="btn js-onLine" text="联机模式" @onClick="toHomeList"></c-button>
-    <c-button class="btn js-offLine" text="离线模式"></c-button>
-    <c-button class="btn end" text="离开游戏"></c-button>
+    <c-button class="btn js-offLine" text="聚会模式" @onClick="toOfLineGame"></c-button>
+    <c-button class="btn end" text="离开游戏" @onClick="over"></c-button>
   </div>
 </template>
 
 <script>
   import anime from 'animejs'
   import cButton from '@common/c-button.vue'
+  import { closeWindow } from '@src/config/wechat-api'
+
   export default {
     mounted () {
       this.setLogoAnimation()
@@ -47,6 +49,18 @@
       },
       toHomeList () {
         this.$router.push({name: 'home-index'})
+      },
+      toOfLineGame () {
+        this.$router.push({name: 'off-line-home'})
+      },
+      over () {
+        this.$vux.confirm.show({
+          title: '离开游戏',
+          content: '确定要离开游戏吗?',
+          onConfirm () {
+            closeWindow()
+          }
+        })
       }
     },
     components: {
