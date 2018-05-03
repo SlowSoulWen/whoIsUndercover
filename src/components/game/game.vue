@@ -4,7 +4,7 @@
       <scroller :on-infinite="infiniteGamer" ref="scroller">
         <div class="avatar-box" v-for="(item, index) in player" @click="showVoteHandler(index)" :key="index">
           <div class="avatar-content">
-            <c-avatar class="avatar"></c-avatar>
+            <c-avatar class="avatar" :src="item.avator"></c-avatar>
             <div class="out-box" v-show="item.isOut">
               <svg class="icon" aria-hidden="true">
                 <use xlink:href="#icon-chacha"></use>
@@ -190,6 +190,18 @@
               this.$router.go(-1)
             }
           })
+          let result = ''
+          if ((data.winer === 1 && data.keywrod[1] === this.keywrod) || (data.winer === 0 && data.keywrod[0] === this.keywrod)) {
+            result = 1
+          } else {
+            result = 0
+          }
+          gameModel.updateRecord({
+            name: `联机模式${this.player.length}人局`,
+            time: (new Date()).toLocaleDateString(),
+            role: this.keywrod,
+            result
+          })
         })
         // 玩家淘汰
         this.gameSocket.on('out', (data) => {
@@ -352,6 +364,7 @@
             margin: 0 auto;
             margin-top: 10px;
             margin-bottom: 5px;
+            border-radius: 50%;
           }
         }
 

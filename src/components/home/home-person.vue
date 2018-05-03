@@ -201,6 +201,10 @@
     ._v-container {
       padding-top: 80px;
       .bg-stripe(#3CCFC4, 45deg);
+
+      & > ._v-content {
+        padding-bottom: 80px;
+      }
     }
   }
 </style>

@@ -51,6 +51,10 @@
   #home-list {
     ._v-container {
       .bg-stripe(#58C2F5, 45deg);
+
+      & > ._v-content {
+        padding-bottom: 30px;
+      }
     }
   }
 </style>

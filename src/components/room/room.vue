@@ -52,6 +52,7 @@
   import { roomModel, gameModel } from '@src/config/request-map'
   import io from 'socket.io-client'
   import { shareAll } from '@src/config/wechat-api'
+  import parser from 'socket.io-json-parser'
 
   export default {
     data () {
@@ -76,6 +77,7 @@
       if (!(await this.joinRoom())) return false
       if (!(await this.initRoomDeatil())) return false
       this.roomSocket = io('/rooms', {
+        parser,
         query: {
           roomId: this.id,
           nickName: this.$store.state.User.nickname,
@@ -170,8 +172,12 @@
           })
         })
         // 玩家改变准备状态
-        this.roomSocket.on('changeReadyStatus', (roomDeatil) => {
-          this.updateRoomDetail(roomDeatil)
+        this.roomSocket.on('changeReadyStatus', (data) => {
+          let userId = data.userId
+          let current = this.player.findIndex((player) => {
+            return player.id === userId
+          })
+          this.player[current].isReady = data.status
         })
         // 房主开始游戏
         this.roomSocket.on('joinGame', (data) => {
