@@ -37,6 +37,13 @@
         default: true
       }
     },
+    watch: {
+      chatData () {
+        this.$nextTick(() => {
+          this.$refs.scroller.scrollTo(0, this.$refs.scroller.$el.firstChild.clientHeight)
+        })
+      }
+    },
     methods: {
       infiniteChatDialog (done) {
         done()
@@ -116,4 +123,12 @@
   }
 </style>
 
-
+<style lang="less">
+  .c-chat-box {
+    ._v-container {
+      & > ._v-content {
+        padding-bottom: 5px;
+      }
+    }
+  }
+</style>

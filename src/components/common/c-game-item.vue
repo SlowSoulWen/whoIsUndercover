@@ -5,7 +5,7 @@
       <span class="time">{{ gameData.time }}</span>
       <span class="role">{{ gameData.role }}</span>
     </div>
-    <span class='result-icon'>{{ gameData.result }}</span>
+    <span class='result-icon' :class="{'fail': !gameData.result}">{{ gameData.result ? '胜利' : '失败' }}</span>
   </div>
 </template>
 
@@ -43,7 +43,7 @@
       .name {
           display: block;            
           padding: 5px 3px;
-        .addLabel('房间名', #1FAEF2);
+        .addLabel('模式', #1FAEF2);
       }
 
       .time {          
@@ -73,6 +73,9 @@
       transform: rotate(45deg);
     }
 
+    .fail {
+      background: @global-pink;
+    }
   }
 </style>
 

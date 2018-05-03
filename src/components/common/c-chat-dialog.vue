@@ -1,6 +1,6 @@
 <template>
   <div class="c-chat-dialog">
-    <c-avatar class="avatar"></c-avatar>
+    <c-avatar class="avatar" :src="user.avator"></c-avatar>
     <div class='dialog-content'>
       <h4>{{ user.nickname }}</h4>
       <span>{{ message }}</span>
