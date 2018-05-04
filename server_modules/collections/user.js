@@ -86,7 +86,6 @@ module.exports = async () => {
     try {
       await this.insertOne(user)
     } catch (err) {
-      console.log('新增用户出错: ', err.message)
       let res = {error: 1, errMesage: ''}
       if (err.message) {
         for (let [key, value] of Object.entries(ErrMessage)) {
@@ -107,7 +106,19 @@ module.exports = async () => {
     try {
       res = await this.findOne(query)
     } catch (err) {
-      console.log('findOneUser Error:', err.message)
+      res = {
+        error: 1,
+        errMessage: err.message
+      }
+    }
+    return res
+  }
+  user.$updateOneUser = async function (query, content) {
+    let res = null
+    try {
+      res = await this.updateOne(query, {$set: content})
+    } catch (err) {
+      console.error('updateOneUser Error:', err.message)
       res = {
         error: 1,
         errMessage: err.message

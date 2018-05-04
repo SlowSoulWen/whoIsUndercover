@@ -13,11 +13,12 @@ module.exports = {
   **/
   checkLogin: async (req, res, next) => {
     let userId = req.cookies.userId
-    let user = await userCollection.$findOneUser({ id: userId })
+    let user = null
+    if (userId) user = await userCollection.$findOneUser({ id: userId })
     if (!user) {
-      res.status(401).json({
+      res.json({
         errno: 1,
-        data: '未登录'
+        data: '尚未登录'
       })
     }
     next()

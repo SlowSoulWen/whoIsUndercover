@@ -2,7 +2,13 @@ const express = require('express')
 const app = express()
 var path = require('path')
 const server = require('http').Server(app)
-const io = require('socket.io')(server)
+const customParser = require('socket.io-json-parser')
+const io = require('socket.io')(server, {
+  parser: customParser,
+  serveClient: false,
+  pingInterval: 10000,
+  pingTimeout: 5000
+})
 const session = require('express-session')
 const webpack = require('webpack')
 const middleware = require('webpack-dev-middleware')
@@ -10,6 +16,7 @@ require('babel-register')
 const config = require('../config')
 const websocket = require('../server_modules/websocket')
 const httpRoute = require('../server_modules/http')
+const wechatRouter = require('./wechat')
 
 const webpackConfig = process.env.NODE_ENV === 'test'
 ? require('./webpack.prod.conf')
@@ -61,8 +68,9 @@ app.use(staticPath, express.static('./static'))
 app.use(require('cookie-parser')())
 app.use(require('body-parser')())
 
-const ws = websocket(io)
-httpRoute(app, ws)
+websocket(io)
+httpRoute(app)
+wechatRouter(app)
 
 server.listen(port, () => {
   console.log(`app listening on port ${port}!`)

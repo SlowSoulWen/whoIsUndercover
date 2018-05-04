@@ -65,6 +65,48 @@ module.exports = async (app, ws) => {
     }
   })
 
+  app.post('/checkLogin', async (req, res) => {
+    let userId =  req.cookies.userId
+    let user = await userCollection.$findOneUser({ id: userId })
+    if (!user) {
+      res.json({
+        errno: 1,
+        data: '未登录'
+      })
+      return
+    }
+    res.json({
+      errno: 0,
+      data: user
+    })
+  })
+
+  app.post('/register', async (req, res) => {
+    let user = req.body
+    const emptyMessage = {
+      account: '账号不能为空',
+      nickname: '昵称不能为空',
+      password: '密码不能为空'
+    }
+    if (Util.judgeEmpty(user, emptyMessage, res)) return false
+    user.id = Util.getRandomNumber(10)
+    if (!user.avator) user.avator = 'http://oo917ps5l.bkt.clouddn.com/u=1569065380,2610568000&fm=27&gp=0.jpg'
+    user.record = []
+    user.winCount = 0
+    user.failCount = 0
+    user.playing = 2
+    let result = await userCollection.$addUser(user)
+    middlewares.checkDbData(req, res, result)
+    res.cookie('userId', user.id, {
+      path: '/',
+      maxAge: 1000 * 60 * 60 * 48,
+    })
+    res.json({
+      errno: 0,
+      data: user
+    })
+  })
+
   // 获取房间列表
   app.get('/getRoomsList', async (req, res) => {
     const emptyMessage = {
@@ -135,8 +177,7 @@ module.exports = async (app, ws) => {
     if (Util.judgeEmpty(query, emptyMessage, res)) return false
     // ----- 查找对应房间，看相应的房间状态是否符合加入要求 ---- //
     let room = await roomCollection.$findOneRoom({
-      id: query.roomId,
-      status: 1
+      id: query.roomId
     })
     middlewares.checkDbData(req, res, room)
     if (room.player.length === room.playerMaxNum) {
@@ -146,7 +187,7 @@ module.exports = async (app, ws) => {
       })
       return false
     } else if (room.status === 2) {
-      res.josn({
+      res.json({
         errno: 1,
         data: '该房间已经开始游戏了'
       })
@@ -226,6 +267,7 @@ module.exports = async (app, ws) => {
     game.number = room.playerMaxNum
     game.player = room.player.map((player) => {
       return {
+        avator: player.avator,
         id: player.id,
         account: player.account,
         nickname: player.nickname,
@@ -257,6 +299,29 @@ module.exports = async (app, ws) => {
     })
   })
 
+  // 更新玩家战绩
+  app.post('/updateRecord',  middlewares.checkLogin, async (req, res) => {
+    let userId =  req.cookies.userId
+    let data = req.body
+    let user = await userCollection.$findOneUser({id: userId})
+    user.record.push({
+      name: data.name,
+      time: data.time,
+      role: data.role,
+      result: Number(data.result)
+    })
+    Number(data.result) === 1 ? user.winCount++ : user.failCount++
+    await userCollection.$updateOneUser({id: userId}, {
+      record: user.record,
+      winCount: user.winCount,
+      failCount: user.failCount
+    })
+    res.json({
+      errno: 0,
+      data: 'success'
+    })
+  })
+
   // 开始游戏
   app.post('/startGame', middlewares.checkLogin, async (req, res, next) => {
     const emptyMessage = {
@@ -266,8 +331,6 @@ module.exports = async (app, ws) => {
     }
     const game = req.body
     if (Util.judgeEmpty(game, emptyMessage, res)) return false
-    let gameCollection = await Game()
-    let roomCollection = await Room()
     // 获取相应房间信息
     let room = await roomCollection.$findOneRoom({ id: game.roomId })
     middlewares.checkDbData(req, res, room)
@@ -330,7 +393,8 @@ module.exports = async (app, ws) => {
           id: player.id,
           nickname: player.nickname,
           isOut: player.isOut,
-          poll: player.poll
+          poll: player.poll,
+          avator: player.avator
         }
       }),
       keywrod: game.keywrod[selfData.identity],
@@ -359,7 +423,6 @@ module.exports = async (app, ws) => {
         data: hasEmptyMes
       })
     }
-    let gameCollection = await Game()
     let game = gameCollection.$findGame({id: vote.gameId})
     middlewares.checkDbData(req, res, game)
     // 获得投票玩家数据，判断是否已投过票
