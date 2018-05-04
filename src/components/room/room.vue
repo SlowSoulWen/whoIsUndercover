@@ -162,12 +162,14 @@
         this.roomSocket.on('message', async (data) => {
           let userId = data.userId
           let message = data.message
+          let msgType = data.msgType
           let user = this.player.find((player) => {
             return player.id === userId
           })
           this.chatData.push({
             chatType: 2, // 1、系统消息 2、玩家发言
             data: message,
+            msgType: msgType,
             user
           })
         })
@@ -187,7 +189,8 @@
       // 玩家发言
       handleMsgSend (data) {
         this.roomSocket.send({
-          message: data.message
+          message: data.message,
+          msgType: data.msgType
         })
       },
       handleReady () {

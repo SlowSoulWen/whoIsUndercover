@@ -21,7 +21,7 @@
       </div>
       <div class="history" v-if="id">
         <h3 class="title">历史战绩</h3>
-        <c-game-item v-for="(item, index) in record" :gameData="item" :key="index"></c-game-item>
+        <c-game-item v-for="(item, index) in record" v-if="item" :gameData="item" :key="index"></c-game-item>
         <div class="nothing" v-if="!record.length">暂无内容</div>
       </div>
       <button v-if="!id" class="login-btn btn" @click="toLogin">立即登录</button>
@@ -33,10 +33,17 @@
   import cGameItem from '@common/c-game-item'
   import { mapState } from 'vuex'
   import cAvatar from '@common/c-avatar'
+  import { userModel } from '@src/config/request-map'
 
   export default {
     data () {
       return {}
+    },
+    async created () {
+      let data = await userModel.getUserInfo()
+      if (!data.errno) {
+        this.$store._mutations['User/storeUserDetail'][0](data.data)
+      }
     },
     computed: {
       ...mapState('User', [

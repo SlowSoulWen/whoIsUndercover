@@ -172,12 +172,14 @@
         this.gameSocket.on('message', (data) => {
           let userId = data.userId
           let message = data.message
+          let msgType = data.msgType
           let user = this.player.find((player) => {
             return player.id === userId
           })
           this.chatData.push({
             chatType: 2, // 1、系统消息 2、玩家发言
             data: message,
+            msgType,
             user
           })
         })
@@ -291,8 +293,9 @@
         let message = data.message.replace(re, () => {
           return '***'
         })
-        this.gameSocket.emit('message', {
-          message
+        this.gameSocket.send({
+          message,
+          msgType: data.msgType
         })
       },
       stopSpeakHandler () {
