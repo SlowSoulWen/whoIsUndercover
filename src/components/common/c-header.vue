@@ -35,7 +35,7 @@
     height: 50px;
     line-height: 50px;
     width: 100%;
-    background: pink;
+    background: @global-pink;
 
     .icon {
       font-size: 2rem;

@@ -2,10 +2,10 @@
   <div class="c-chat-box">
     <div class="comment">
       <scroller :on-infinite="infiniteChatDialog" ref="scroller">
-        <template v-for="item in chatData">
-          <c-chat-dialog v-if="item.chatType == 2 && item.msgType == 1" :key="item.userId" :message="item.data" :user="item.user"></c-chat-dialog>
-          <c-chat-voice v-else-if="item.chatType == 2 && item.msgType == 2" :key="item.userId" :message="item.data" :user="item.user"></c-chat-voice>
-          <c-chat-prompt v-else-if="item.chatType == 1" :key="item.userId" :message="item.data" :type="item.type"></c-chat-prompt>
+        <template v-for="(item, index) in chatData">
+          <c-chat-dialog v-if="item.chatType == 2 && item.msgType == 1" :key="index" :message="item.data" :user="item.user"></c-chat-dialog>
+          <c-chat-voice v-else-if="item.chatType == 2 && item.msgType == 2" :key="index" :message="item.data" :user="item.user"></c-chat-voice>
+          <c-chat-prompt v-else-if="item.chatType == 1" :key="index" :message="item.data" :type="item.type"></c-chat-prompt>
         </template>
       </scroller>
     </div>
