@@ -5,6 +5,7 @@ const Game = require('./collections/game')
 async function websocket (io) {
   const roomCollection = await Room()
   const gameCollection = await Game()
+  let _gameReadyStatus = {} // 存放每个游戏房间玩家的准备状态
 
   // namespaces
   // 房间
@@ -56,7 +57,8 @@ async function websocket (io) {
     // 有玩家离开房间
     socket.on('disconnect', async (data) => {
       //  更新数据库
-      let room = await roomCollection.$findOneRoom({id: _roomId})
+      let room = await roomCollection.$findOneRoom({id: _roomId, status: 1})
+      if (!room) return
       let index = room.player.findIndex((player) => {
         return player.id === userId
       })
@@ -91,7 +93,9 @@ async function websocket (io) {
       roomCollection.$updateOneRoom({
         id: _roomId
       }, {
-        status: 2
+        status: 2,
+        player: [],
+        ownerId: ''
       })
       ROOMS.to(_roomId).emit('joinGame', data)
     })
@@ -111,17 +115,13 @@ async function websocket (io) {
     // 玩家准备
     socket.on('ready', async (data) => {
       let game = await gameCollection.$findOneGame({ id: _gameId })
-      let allReady = true
-      game.player.forEach((player) => {
-        if (player.id === _userId) player.isReady = true
-        if (!player.isReady) allReady = false
-      })
-      gameCollection.$updateOneGame({ id: _gameId }, {
-        player: game.player
-      })
+      let playerNum = game.player.length
+      _gameReadyStatus[_gameId] ?  _gameReadyStatus[_gameId]++ : _gameReadyStatus[_gameId] = 1
       // 如果所有玩家都准备完毕
-      if (allReady) {
-        GAMES.to(_gameId).emit('newRound')
+      if (_gameReadyStatus[_gameId] >= playerNum) {
+        console.log('所有玩家已准备')
+        delete _gameReadyStatus[_gameId]
+        await GAMES.to(_gameId).emit('newRound')
         GAMES.to(_gameId).emit('speak', {
           userId: game.player[0].id,
           time: _time
@@ -201,6 +201,7 @@ async function websocket (io) {
           GAMES.to(_gameId).emit('out', {})
         } else { // 2、淘汰最高票玩家，检查游戏是否结束
           players[maxPollPlayer.index].isOut = true
+          noOutNum--
           GAMES.to(_gameId).emit('out', {
             userId: maxPollPlayer.userId,
             identity: maxPollPlayer.identity
@@ -209,21 +210,21 @@ async function websocket (io) {
             return !player.isOut && player.identity === 1
           })
           if (!hasUndercover) { // 卧底全部被淘汰，平民胜利
+            await roomCollection.$updateOneRoom({ id: _roomId }, { status: 1 })
             GAMES.to(_gameId).emit('gameOver', {
               winer: 0, // 0、平民胜利 1、卧底胜利
               keywrod: game.keywrod
             })
             gameCollection.$updateOneGame({ id: _gameId }, { result: 0 })
-            roomCollection.$updateOneRoom({ id: _roomId }, { status: 1 })
             return
           } else {
             if (noOutNum <= 3) { // 卧底撑到最后三人，卧底胜利
+              let res = await roomCollection.$updateOneRoom({ id: _roomId }, { status: 1 })
               GAMES.to(_gameId).emit('gameOver', {
                 winer: 1, // 0、平民胜利 1、卧底胜利
                 keywrod: game.keywrod
               })
               gameCollection.$updateOneGame({ id: _gameId }, { result: 1 })
-              roomCollection.$updateOneRoom({ id: _roomId }, { status: 1 })
               return
             }
           }
@@ -254,6 +255,7 @@ async function websocket (io) {
     // 玩家离开
     socket.on('disconnect', (data) => {
       // TODO 玩家离开游戏，即认定为出局
+      console.log('玩家离开游戏')
     })
   })
 }

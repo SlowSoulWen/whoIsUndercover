@@ -1,6 +1,7 @@
 const User = require('./collections/user')
 const Room = require('./collections/room')
 const Game = require('./collections/game')
+const Key = require('./collections/key')
 const Util = require('./util')
 const middlewares = require('./middlewares')
 const bodyParser = require('body-parser')
@@ -9,6 +10,7 @@ module.exports = async (app, ws) => {
   let userCollection = await User()
   let roomCollection = await Room()
   let gameCollection = await Game()
+  let keyCollection = await Key()
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
@@ -288,7 +290,8 @@ module.exports = async (app, ws) => {
       game.player[index].identity = 1
     }
     game.result = 0
-    game.keywrod = ['诸葛亮', '庞统']
+    let keyWord = (await keyCollection.$randomOneKeyWord()).keyWord
+    game.keywrod = keyWord
     let result = await gameCollection.$newGame(game)
     middlewares.checkDbData(req, res, result)
     res.json({
