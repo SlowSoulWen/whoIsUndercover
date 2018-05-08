@@ -7,6 +7,8 @@
 
 <script>
   import { Loading } from 'vux'
+  import { wechatConfig } from '@src/config/wechat-api'
+
   export default {
     data () {
       return {
@@ -23,6 +25,7 @@
         setTimeout(() => {
           _this.isLoading = false
         }, 200)
+        wechatConfig()
       })
     },
     components: {
