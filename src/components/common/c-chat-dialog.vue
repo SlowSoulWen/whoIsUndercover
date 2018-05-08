@@ -57,11 +57,12 @@
 
       & > span {
         display: inline-block;
-        background: @global-blue - #111;
+        background: @global-blue;
         color: #ffffff;
         max-width: 90%;
-        padding: 5px 6px;
-        border-radius: 0.5em;
+        padding: 8px 10px;
+        border-radius: 5px;
+        font-weight: bold;
       }
     }
   }
