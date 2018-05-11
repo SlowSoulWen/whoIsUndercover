@@ -91,8 +91,8 @@
         this.tape = false
       },
       async tapeCancel () {
-        await stopRecord()
         this.tape = false
+        stopRecord()
       },
       send () {
         if (!this.sendable) {
