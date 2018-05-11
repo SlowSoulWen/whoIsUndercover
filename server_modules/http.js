@@ -23,6 +23,7 @@ module.exports = async (app, ws) => {
       nickname: '昵称不能为空'
     }
     let user = req.body
+    console.log('有人注册', user)
     if (Util.judgeEmpty(user, emptyMessage, res)) return false
     user.password = Util.encryption(user.password)
     user.id = Util.getRandomNumber(20)
@@ -322,6 +323,15 @@ module.exports = async (app, ws) => {
     res.json({
       errno: 0,
       data: 'success'
+    })
+  })
+
+  // 获取关键字
+  app.get('/keyWord', async (req, res) => {
+    let keyWord = (await keyCollection.$randomOneKeyWord()).keyWord
+    res.json({
+      errno: 0,
+      data: keyWord
     })
   })
 

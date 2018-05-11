@@ -71,6 +71,29 @@ function createTimestamp () {
 function createNonceStr () {
   return Math.random().toString(36).substr(2, 15)
 }
+/**
+  * 自定义公众号菜单
+**/
+function createMenu () {
+  return axios({
+    method: 'post',
+    url: `https://api.weixin.qq.com/cgi-bin/menu/create?access_token=${ACCESSTOKEN}`,
+    data: {
+      "button": [
+        {
+          "name": "玩游戏", 
+          "sub_button": [
+            {
+              "type": "view", 
+              "name": "谁是卧底", 
+              "url": "http://172.20.10.3"
+            }
+          ]
+        }
+      ]
+    }
+  })
+}
 
 module.exports = function (app) {
   // 微信验证开发者服务器
@@ -100,7 +123,11 @@ module.exports = function (app) {
     console.log('请求了一次SDK权限接口')
     getAccessToken()
       .then((res) => {
+        console.log('token', res.data.access_token)
         ACCESSTOKEN = res.data.access_token
+        createMenu().then((res) => {
+          console.log('定义菜单', res.data)
+        })
         return getJsapiTicket()
       })
       .then((res) => {

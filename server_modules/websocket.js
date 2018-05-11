@@ -6,6 +6,7 @@ async function websocket (io) {
   const roomCollection = await Room()
   const gameCollection = await Game()
   let _gameReadyStatus = {} // 存放每个游戏房间玩家的准备状态
+  let _gameVotedStatus = {} // 存放游戏的投票状态
 
   // namespaces
   // 房间
@@ -119,7 +120,6 @@ async function websocket (io) {
       _gameReadyStatus[_gameId] ?  _gameReadyStatus[_gameId]++ : _gameReadyStatus[_gameId] = 1
       // 如果所有玩家都准备完毕
       if (_gameReadyStatus[_gameId] >= playerNum) {
-        console.log('所有玩家已准备')
         delete _gameReadyStatus[_gameId]
         await GAMES.to(_gameId).emit('newRound')
         GAMES.to(_gameId).emit('speak', {
@@ -169,42 +169,64 @@ async function websocket (io) {
     // 玩家投票
     socket.on('vote', async (data) => {
       let voteId = data.userId
-      let game = await gameCollection.$findOneGame({ id: _gameId })
-      let players = game.player
-      let noOutNum = 0 // 剩余玩家数量
-      let allVoted = true
-      let maxPollPlayer = {
-        polls: -1,
-        index: -1,
-        userId: '',
-        identity: -1
+      if (!_gameVotedStatus[_gameId]) {
+        _gameVotedStatus[_gameId] = {}
+        _gameVotedStatus[_gameId].votedNum = 0
       }
-      let hasSame = false // 是否有不止一个最高票
-      players.forEach((player, index) => {
-        if (player.isOut) return
-        noOutNum++
-        if (player.id === _userId) player.isVoted = true
-        if (player.id === voteId) player.poll++
-        if (!player.isVoted) allVoted = false
-        if (player.poll > maxPollPlayer.polls) {
-          hasSame = false
-          maxPollPlayer.polls = player.poll
-          maxPollPlayer.index = index
-          maxPollPlayer.userId = player.id
-          maxPollPlayer.identity = player.identity
-        } else if (player.poll === maxPollPlayer.polls) {
-          hasSame = true
+      _gameVotedStatus[_gameId][voteId] ? _gameVotedStatus[_gameId][voteId]++ : _gameVotedStatus[_gameId][voteId] = 1
+      _gameVotedStatus[_gameId].votedNum++
+      let game = await gameCollection.$findOneGame({ id: _gameId })
+      if (_gameVotedStatus[_gameId].votedNum === game.player.length) { // 如果所有玩家都投票完毕，计算投票结果
+        let players = game.player
+        let noOutNum = 0 // 剩余玩家数量
+        let maxPollPlayer = { // 记录最高票玩家的相关信息
+          polls: -1,
+          userId: '',
+          identity: -1
         }
-      })
-      if (allVoted) { // 如果所有玩家都投票完毕，计算投票结果
+        let hasSame = false // 是否有不止一个最高票
+        for (const [key, value] of Object.entries(_gameVotedStatus[_gameId])) {
+          if (key !== 'votedNum') {
+            if (value > maxPollPlayer.polls) {
+              hasSame = false
+              maxPollPlayer.polls = value
+              maxPollPlayer.userId = key
+              maxPollPlayer.identity = players.find((player) => { return player.id === key }).identity
+            } else if (value === maxPollPlayer.polls) {
+              hasSame = true
+            }
+          }
+        }
+        // players.forEach((player, index) => {
+        //   if (player.isOut) return
+        //   noOutNum++
+        //   if (player.id === _userId) player.isVoted = true
+        //   if (player.id === voteId) player.poll++
+        //   if (!player.isVoted) allVoted = false
+        //   if (player.poll > maxPollPlayer.polls) {
+        //     hasSame = false
+        //     maxPollPlayer.polls = player.poll
+        //     maxPollPlayer.index = index
+        //     maxPollPlayer.userId = player.id
+        //     maxPollPlayer.identity = player.identity
+        //   } else if (player.poll === maxPollPlayer.polls) {
+        //     hasSame = true
+        //   }
+        // })
         if (hasSame) { // 1、最高票有重复，本轮投票不淘汰玩家
           GAMES.to(_gameId).emit('out', {})
         } else { // 2、淘汰最高票玩家，检查游戏是否结束
-          players[maxPollPlayer.index].isOut = true
-          noOutNum--
+          players.forEach((player) => {
+            if (player.id === maxPollPlayer.userId) player.isOut = true
+            if (!player.isOut) noOutNum++
+          })
           GAMES.to(_gameId).emit('out', {
             userId: maxPollPlayer.userId,
             identity: maxPollPlayer.identity
+          })
+          // 更新数据库
+          gameCollection.$updateOneGame({ id: _gameId }, {
+            player: players
           })
           let hasUndercover = players.some((player) => {
             return !player.isOut && player.identity === 1
@@ -229,11 +251,13 @@ async function websocket (io) {
             }
           }
         }
-        players.forEach((player) => { // 该轮投票结束，重置玩家状态
-          if (player.isOut) return
-          player.isVoted = false
-          player.poll = 0
-        })
+        // 该轮投票结束，重置玩家状态
+        delete _gameVotedStatus[_gameId]
+        // players.forEach((player) => {
+        //   if (player.isOut) return
+        //   player.isVoted = false
+        //   player.poll = 0
+        // })
 
         // 进行下一轮发言
         let index = players.findIndex((player) => {
@@ -245,11 +269,6 @@ async function websocket (io) {
           time: _time
         })
       }
-
-      gameCollection.$updateOneGame({ id: _gameId }, {
-        player: players
-      })
-
     })
     
     // 玩家离开
