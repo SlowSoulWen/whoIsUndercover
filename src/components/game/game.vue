@@ -51,6 +51,7 @@
   import cChatBox from '@common/c-chat-box.vue'
   import { gameModel } from '@src/config/request-map'
   import io from 'socket.io-client'
+  import parser from 'socket.io-json-parser'
 
   export default {
     data () {
@@ -71,8 +72,10 @@
         roundsNum: 0
       }
     },
-    created () {
+    async created () {
+      await this.initGameDetail()
       this.gameSocket = io('/games', {
+        parser,
         query: {
           gameId: this.id,
           nickName: this.$store.state.User.nickname,
@@ -81,10 +84,7 @@
         }
       })
       this.initSocketHandlers()
-    },
-    async mounted () {
       let _this = this
-      await this.initGameDetail()
       this.$vux.alert.show({
         title: '您的关键字',
         content: this.keywrod,
@@ -189,7 +189,14 @@
             title: `${data.winer === 1 ? '卧底' : '平民'}获胜`,
             content: `平民身份：${data.keywrod[0]}  卧底身份：${data.keywrod[1]}`,
             onHide: () => {
-              this.$router.go(-1)
+              clearInterval(this.timer)
+              typeof this.gameSocket.close === 'function' && this.gameSocket.close()
+              this.$router.replace({
+                name: 'room',
+                params: {
+                  id: this.roomId
+                }
+              })
             }
           })
           let result = ''

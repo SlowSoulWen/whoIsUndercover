@@ -2,10 +2,10 @@
   <div id="off-line-game-2">
     <scroller ref="scroller">
       <div class="gamer-content">
-        <div class="gamer-box" v-for="(item, index) in players" :key="index" @click="select(index)">
+        <div class="gamer-box" v-for="(item, index) in playersData" :key="index" @click="select(index)">
           <img class="avatar" src="../../assets/underCover.jpg" alt="">
           <span>{{ index + 1 }}号玩家</span>
-          <span class="indenty" v-show="item.isOut">身份: {{ item.indenty === 0 ? '平民' : '卧底' }}</span>
+          <span class="indenty" v-show="item.isOut">身份: {{ item.identity === 0 ? '平民' : '卧底' }}</span>
           <div class="mask" v-show="item.show">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-gou1"></use>
@@ -27,67 +27,23 @@ export default {
     players: {
       type: Array,
       default: function () {
-        return [
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          },
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          },
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          },
-          {
-            keyword: '庞统',
-            indenty: 1
-          },
-          {
-            keyword: '庞统',
-            indenty: 1
-          },
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          },
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          },
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          },
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          },
-          {
-            keyword: '庞统',
-            indenty: 1
-          },
-          {
-            keyword: '庞统',
-            indenty: 1
-          },
-          {
-            keyword: '诸葛亮',
-            indenty: 0
-          }
-        ]
+        return []
       }
     },
-    indenty: {
+    identity: {
       type: Array,
       default: function () {
-        return ['诸葛亮', '庞统']
+        return []
       }
     }
   },
   data () {
     return {
+      playersData: this.players.map((player) => {
+        player.show = false
+        player.isOut = false
+        return player
+      }),
       isSelect: false,
       selectIndex: -1
     }
@@ -100,15 +56,16 @@ export default {
   },
   methods: {
     select (index) {
-      if (this.players[index].isOut) return false
-      this.players.forEach((player) => {
-        if (player.show) player.show = false
+      if (this.playersData[index].isOut) return false
+      this.playersData.forEach((player, index) => {
+        if (player.show) this.$set(this.playersData[index], 'show', false)
       })
-      this.$set(this.players[index], 'show', true)
+      this.$set(this.playersData[index], 'show', true)
       this.isSelect = true
       this.selectIndex = index
     },
     eliminate () {
+      let _this = this
       if (!this.isSelect) {
         this.$vux.alert.show({
           title: '提示',
@@ -116,30 +73,36 @@ export default {
         })
         return false
       }
-      this.players[this.selectIndex].show = false
+      this.playersData[this.selectIndex].show = false
       this.isSelect = false
-      this.$set(this.players[this.selectIndex], 'isOut', true)
+      this.$set(this.playersData[this.selectIndex], 'isOut', true)
       let noOutNum = 0
-      this.players.forEach((player) => {
+      this.playersData.forEach((player) => {
         if (!player.isOut) noOutNum++
       })
-      let hasUndercover = this.players.some((player) => {
-        return !player.isOut && player.indenty === 1
+      let hasUndercover = this.playersData.some((player) => {
+        return !player.isOut && player.identity === 1
       })
       if (!hasUndercover) { // 卧底全部被淘汰，平民胜利
         this.$vux.alert.show({
           title: '平民胜利',
-          content: `平民身份：${this.indenty[0]}  卧底身份：${this.indenty[1]}`
+          content: `平民身份：${this.identity[0]}  卧底身份：${this.identity[1]}`,
+          onHide () {
+            _this.$router.go(-1)
+          }
         })
       } else if (noOutNum <= 3) { // 卧底撑到最后三人，卧底胜利
         this.$vux.alert.show({
           title: '卧底胜利',
-          content: `平民身份：${this.indenty[0]}  卧底身份：${this.indenty[1]}`
+          content: `平民身份：${this.identity[0]}  卧底身份：${this.identity[1]}`,
+          onHide () {
+            _this.$router.go(-1)
+          }
         })
       } else {
         this.$vux.alert.show({
           title: `${this.selectIndex + 1}号玩家被淘汰了`,
-          content: `Ta的身份是：${this.players[this.selectIndex].indenty === 0 ? '平民' : '卧底'}`
+          content: `Ta的身份是：${this.players[this.selectIndex].identity === 0 ? '平民' : '卧底'}`
         })
         this.selectIndex = -1
       }

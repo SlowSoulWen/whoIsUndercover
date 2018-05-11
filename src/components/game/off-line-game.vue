@@ -13,43 +13,47 @@
 
 <script>
 import anime from 'animejs'
+import { gameModel } from '@src/config/request-map'
 
 export default {
+  props: {
+    gamersNum: {
+      type: Number,
+      default: 0
+    }
+  },
   data () {
     return {
       current: 0,
       keyword: '',
+      indenty: [],
       showKey: false,
       isLast: false,
-      players: [
-        {
-          keyword: '诸葛亮',
-          indenty: 0
-        },
-        {
-          keyword: '诸葛亮',
-          indenty: 0
-        },
-        {
-          keyword: '诸葛亮',
-          indenty: 0
-        },
-        {
-          keyword: '庞统',
-          indenty: 1
-        },
-        {
-          keyword: '庞统',
-          indenty: 1
-        },
-        {
-          keyword: '诸葛亮',
-          indenty: 0
-        }
-      ]
+      players: Array(this.gamersNum).fill({})
     }
   },
-  created () {
+  async created () {
+    let keyword = (await gameModel.getKeyWord()).data.data
+    // 随机分配1/3玩家为卧底身份
+    for (let i = 0; i < Math.floor(this.gamersNum / 3); i++) {
+      let index = Math.floor(Math.random() * this.gamersNum)
+      if (this.players[index].identity) {
+        i--
+        continue
+      }
+      this.players[index] = {
+        keyword: keyword[1],
+        identity: 1
+      }
+    }
+    for (let i = 0; i < this.gamersNum; i++) {
+      if (this.players[i].identity) continue
+      this.players[i] = {
+        keyword: keyword[0],
+        identity: 0
+      }
+    }
+    this.indenty = keyword
     this.keyword = this.players[this.current].keyword
   },
   mounted () {
@@ -83,10 +87,11 @@ export default {
       }
     },
     game () {
-      this.$router.push({
+      this.$router.replace({
         name: 'off-line-game-2',
         params: {
-          players: this.players
+          players: this.players,
+          identity: this.indenty
         }
       })
     }
