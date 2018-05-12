@@ -12,6 +12,7 @@ export default [
   {
     path: '/off-line-game',
     name: 'off-line-game',
+    props: true,
     component: cOffLineGame
   },
   {

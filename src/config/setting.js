@@ -19,7 +19,7 @@ const CONFIG = {
 }
 
 // 默认列表页每页显示条目数
-const PAGE_SIZE_DEFAULT = 10
+const PAGE_SIZE_DEFAULT = 20
 
 export {
   ENVIRONMENT,
