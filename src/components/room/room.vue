@@ -42,6 +42,12 @@
     <div class='chat-content'>
       <c-chat-box :chatData="chatData" @msgSend="handleMsgSend"></c-chat-box>
     </div>
+    <x-dialog class="pwd-box" v-model="showPwdBox">
+      <h4>请输入房间密码：</h4>
+      <input type="text" v-model="pwd">
+      <button class="btn pwd-btn" @click="checkPwd">确认</button>
+      <button class="btn cancel-btn" @click="handleExit">离开</button>
+    </x-dialog>
   </div>
 </template>
 
@@ -49,6 +55,7 @@
   import cHeader from '@common/c-header.vue'
   import cAvatar from '@common/c-avatar.vue'
   import cChatBox from '@common/c-chat-box.vue'
+  import { XDialog } from 'vux'
   import { roomModel, gameModel } from '@src/config/request-map'
   import io from 'socket.io-client'
   import { shareAll } from '@src/config/wechat-api'
@@ -65,7 +72,10 @@
         roomSocket: {},
         chatData: [],
         isOwner: false,
-        isReady: false
+        isReady: false,
+        roomPwd: '',
+        showPwdBox: false,
+        pwd: ''
       }
     },
     props: {
@@ -76,6 +86,9 @@
     async created () {
       if (!(await this.joinRoom())) return false
       if (!(await this.initRoomDeatil())) return false
+      if (this.roomPwd && this.ownerId !== this.$store.state.User.id) {
+        this.showPwdBox = true
+      }
       this.roomSocket = io('/rooms', {
         parser,
         query: {
@@ -245,17 +258,33 @@
           title: '提示',
           content: '确定要离开房间吗?',
           onConfirm () {
-            _this.$router.go(-1)
+            _this.$router.replace({
+              name: 'home-page'
+            })
           }
         })
       },
-      updateRoomDetail ({ownerId, roomName, player, playerMaxNum, status}) {
+      updateRoomDetail ({ownerId, roomName, player, playerMaxNum, status, roomPwd}) {
         this.ownerId = ownerId
         this.roomName = roomName
         this.player = player
         this.playerMaxNum = playerMaxNum
         this.status = status
         this.isOwner = ownerId === this.$store.state.User.id
+        this.roomPwd = roomPwd
+      },
+      checkPwd () {
+        if (this.pwd === this.roomPwd) {
+          this.$vux.toast.show({
+            text: '密码正确'
+          })
+          this.showPwdBox = false
+        } else {
+          this.$vux.toast.show({
+            type: 'cancel',
+            text: '密码错误'
+          })
+        }
       }
     },
     beforeDestroy () {
@@ -264,7 +293,8 @@
     components: {
       cHeader,
       cAvatar,
-      cChatBox
+      cChatBox,
+      XDialog
     }
   }
 </script>
@@ -290,9 +320,9 @@
       .gamer-box {
         background: #ffffff;
         position: relative;
-        min-width: 20%;
-        max-width: 60px;
-        margin: 0.5em 0;
+        width: 23%;
+        // max-width: 60px;
+        margin: 0.5em 3px;
         border-radius: 1em;
         box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.1);
         padding: 5px;
@@ -362,6 +392,38 @@
     .chat-content {
       flex: 1;
       position: relative;
+    }
+
+    .pwd-box {
+      h4 {
+        padding: 10px 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: @global-blue;
+      }
+
+      input {
+        border-style: none;
+        border-bottom: 2px solid @global-blue;
+        padding: 5px 10px;
+        font-size: 1.4rem;
+        text-align: center;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 8px 10px;
+        background: @global-blue;
+        color: #fff;
+        margin: 20px auto;
+        font-size: 1.4rem;
+      }
+
+      .cancel-btn {
+        background: @global-pink;
+      }
     }
   }
 </style>

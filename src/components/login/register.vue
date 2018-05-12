@@ -56,6 +56,18 @@ export default {
           type: 'warn'
         })
         return false
+      } else if (this.form.account.length < 6 || this.form.account.length > 14) {
+        this.$vux.toast.show({
+          text: '账号长度限制为6到14个字符',
+          type: 'warn'
+        })
+        return false
+      } else if (this.form.nickname.length < 1 || this.form.nickname.length > 12) {
+        this.$vux.toast.show({
+          text: '昵称长度限制为1到12个字符',
+          type: 'warn'
+        })
+        return false
       } else if (this.form.password !== this.repassword) {
         this.$vux.toast.show({
           text: '两次密码输入不一致',
