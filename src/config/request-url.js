@@ -20,6 +20,7 @@ REQUEST_URL['search-room'] = '/searchRoom'
 REQUEST_URL['create-game'] = '/createGame'
 REQUEST_URL['get-game-detail'] = '/getGameDetail'
 REQUEST_URL['update-record'] = '/updateRecord'
+REQUEST_URL['get-keyword'] = '/keyWord'
 
 let requestUrl = REQUEST_URL
 for (let key in REQUEST_URL) {

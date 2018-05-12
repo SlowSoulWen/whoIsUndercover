@@ -206,8 +206,18 @@ let updateRecord = async (record) => {
   })
 }
 
+let getKeyWord = async () => {
+  return await $http({
+    method: 'get',
+    url: {
+      path: 'get-keyword'
+    }
+  })
+}
+
 export const gameModel = {
   createGame,
   getGameDetail,
-  updateRecord
+  updateRecord,
+  getKeyWord
 }
